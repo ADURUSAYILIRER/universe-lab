@@ -1,448 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>UNIVERSE LAB | Research Environment</title>
-  
-/* ===== UNIVERSE LAB — CINEMATIC HOME ===== */
-
-body.home-mode .sidebar {
-  display: none !important;
-}
-
-body.home-mode .app {
-  display: block;
-  min-height: 100vh;
-}
-
-body.home-mode main {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-}
-
-body.home-mode .topline,
-body.home-mode footer {
-  display: none !important;
-}
-
-body.home-mode #content {
-  padding: 0;
-}
-
-.home-cinema {
-  --cosmic-purple: #9b8cff;
-  --cosmic-blue: #7bdfff;
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  min-height: 100svh;
-  padding: 26px clamp(22px, 6vw, 90px) 36px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  color: #f5f3ff;
-  background:
-    radial-gradient(ellipse at 75% 42%, #29205b 0%, transparent 36%),
-    radial-gradient(ellipse at 15% 85%, #102d4b 0%, transparent 36%),
-    #070913;
-}
-
-.home-cinema::before {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  pointer-events: none;
-  opacity: .38;
-  background-image:
-    radial-gradient(1px 1px at 10% 18%, white 99%, transparent),
-    radial-gradient(2px 2px at 31% 67%, white 99%, transparent),
-    radial-gradient(1px 1px at 72% 14%, white 99%, transparent),
-    radial-gradient(1px 1px at 88% 74%, white 99%, transparent),
-    radial-gradient(2px 2px at 57% 39%, white 99%, transparent),
-    radial-gradient(1px 1px at 42% 12%, white 99%, transparent),
-    radial-gradient(1px 1px at 94% 28%, white 99%, transparent);
-  background-size: 320px 260px;
-  animation: cosmic-drift 70s linear infinite;
-}
-
-.home-topbar,
-.home-copy,
-.home-bottom,
-.home-scroll {
-  position: relative;
-  z-index: 2;
-}
-
-.home-topbar {
-  position: absolute;
-  top: 28px;
-  left: clamp(22px, 6vw, 90px);
-  right: clamp(22px, 6vw, 90px);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  font-size: 11px;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: #aaa8c7;
-}
-
-.home-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #fff;
-  font-weight: 700;
-}
-
-.home-brand-mark {
-  display: inline-grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border: 1px solid #a69aff;
-  border-radius: 50%;
-  color: #c4bcff;
-  font-size: 17px;
-}
-
-.home-orbit-scene {
-  position: absolute;
-  z-index: 0;
-  width: min(65vw, 760px);
-  aspect-ratio: 1;
-  right: -7%;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  opacity: .8;
-}
-
-.home-orbit {
-  position: absolute;
-  inset: 12%;
-  border: 1px solid #a69aff32;
-  border-radius: 50%;
-  animation: orbit-spin 45s linear infinite;
-}
-
-.home-orbit:nth-child(2) {
-  inset: 23%;
-  border-color: #7bdfff45;
-  animation-duration: 32s;
-  animation-direction: reverse;
-}
-
-.home-orbit:nth-child(3) {
-  inset: 34%;
-  border-color: #c5b8ff45;
-  animation-duration: 24s;
-}
-
-.home-orbit::after {
-  content: "";
-  position: absolute;
-  width: 7px;
-  height: 7px;
-  top: 18%;
-  left: 13%;
-  border-radius: 50%;
-  background: #b9aaff;
-  box-shadow: 0 0 18px 5px #8c79ff70;
-}
-
-.home-core {
-  position: absolute;
-  inset: 39%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #f5edff, #9d91ff 18%, #5943b6 44%, #17152f 72%);
-  box-shadow:
-    0 0 45px #8d7aff70,
-    0 0 120px #7254ff40,
-    0 0 220px #4b77ff20;
-  animation: core-pulse 5s ease-in-out infinite;
-}
-
-.home-copy {
-  width: min(720px, 68%);
-  padding-top: 44px;
-  animation: home-reveal 1s ease both;
-}
-
-.home-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #b8adff;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .24em;
-  text-transform: uppercase;
-}
-
-.home-eyebrow::before {
-  content: "";
-  width: 28px;
-  height: 1px;
-  background: #a99bff;
-}
-
-.home-title {
-  margin: 24px 0;
-  max-width: 800px;
-  font-size: clamp(42px, 7.5vw, 100px);
-  line-height: .99;
-  letter-spacing: -.065em;
-  font-weight: 600;
-}
-
-.home-title span {
-  display: block;
-  color: #aaa0ff;
-  background: linear-gradient(110deg, #d5ceff, #9a8aff 48%, #7bdfff);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.home-description {
-  max-width: 510px;
-  color: #b7b6ce;
-  font-size: clamp(14px, 1.4vw, 17px);
-  line-height: 1.9;
-}
-
-.home-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 32px;
-}
-
-.home-action {
-  min-height: 48px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 0 21px;
-  border: 1px solid #a89cff75;
-  border-radius: 4px;
-  background: #8f7bff;
-  color: #0c0b1b;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform .25s ease, background .25s ease;
-}
-
-.home-action:hover {
-  transform: translateY(-3px);
-  background: #b7aaff;
-}
-
-.home-action.secondary {
-  color: #e6e2ff;
-  background: #ffffff08;
-  border-color: #ffffff35;
-}
-
-.home-action.secondary:hover {
-  background: #ffffff13;
-}
-
-.home-scroll {
-  position: absolute;
-  bottom: 27px;
-  right: clamp(22px, 6vw, 90px);
-  color: #77768f;
-  font-size: 10px;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-}
-
-.home-bottom {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 66px;
-  max-width: 850px;
-}
-
-.home-stage {
-  padding-top: 15px;
-  border-top: 1px solid #ffffff28;
-}
-
-.home-stage-number {
-  color: #a69aff;
-  font-size: 10px;
-  letter-spacing: .16em;
-}
-
-.home-stage h3 {
-  margin: 9px 0 6px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.home-stage p {
-  margin: 0;
-  color: #9695b0;
-  font-size: 12px;
-  line-height: 1.7;
-}
-
-.home-labs {
-  padding: 80px clamp(22px, 6vw, 90px);
-  color: #f3f1ff;
-  background: #0a0b16;
-}
-
-.home-section-kicker {
-  color: #a69aff;
-  font-size: 10px;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-}
-
-.home-section-title {
-  margin: 14px 0;
-  font-size: clamp(30px, 4vw, 52px);
-  letter-spacing: -.045em;
-}
-
-.home-section-description {
-  max-width: 560px;
-  color: #a9a8c0;
-  line-height: 1.8;
-  font-size: 14px;
-}
-
-.home-lab-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 36px;
-}
-
-.home-lab-grid .card {
-  min-height: 190px;
-  border: 1px solid #ffffff16;
-  background: linear-gradient(145deg, #ffffff08, #ffffff03);
-  transition: border-color .25s ease, transform .25s ease;
-}
-
-.home-lab-grid .card:hover {
-  transform: translateY(-4px);
-  border-color: #a69aff75;
-}
-
-@keyframes orbit-spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes core-pulse {
-  0%, 100% { transform: scale(.96); filter: brightness(.9); }
-  50% { transform: scale(1.05); filter: brightness(1.2); }
-}
-
-@keyframes cosmic-drift {
-  to { background-position: 320px 260px; }
-}
-
-@keyframes home-reveal {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@media (max-width: 760px) {
-  .home-cinema {
-    min-height: auto;
-    min-height: 100svh;
-    padding-top: 100px;
-    padding-bottom: 42px;
-  }
-
-  .home-topbar {
-    top: 20px;
-  }
-
-  .home-topbar .home-status {
-    display: none;
-  }
-
-  .home-orbit-scene {
-    width: 110vw;
-    right: -43%;
-    top: 30%;
-    opacity: .45;
-  }
-
-  .home-copy {
-    width: 100%;
-    padding-top: 12px;
-  }
-
-  .home-title {
-    font-size: clamp(43px, 12vw, 76px);
-  }
-
-  .home-description {
-    max-width: 440px;
-  }
-
-  .home-bottom {
-    grid-template-columns: 1fr;
-    gap: 18px;
-    margin-top: 52px;
-  }
-
-  .home-stage {
-    display: grid;
-    grid-template-columns: 38px 1fr;
-    column-gap: 12px;
-    padding-top: 12px;
-  }
-
-  .home-stage-number {
-    grid-row: span 2;
-    padding-top: 4px;
-  }
-
-  .home-stage h3 {
-    margin-top: 0;
-  }
-
-  .home-scroll {
-    display: none;
-  }
-
-  .home-labs {
-    padding-top: 56px;
-    padding-bottom: 56px;
-  }
-
-  .home-lab-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .home-cinema *,
-  .home-cinema::before {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-
 <style>
 :root {
   --bg:#080b13;
@@ -559,6 +120,58 @@ footer { border-top:1px solid var(--line); margin-top:32px; padding-top:15px;
   canvas { height:270px; }
   .topline { align-items:flex-start; }
 }
+
+
+/* ---------- CINEMATIC HOME REDESIGN ---------- */
+body.home-mode { background:#050711; }
+body.home-mode .sidebar { display:none; }
+body.home-mode .app { display:block; min-height:100vh; }
+body.home-mode main { width:100%; max-width:none; padding:0; margin:0; }
+body.home-mode .topline, body.home-mode footer { display:none; }
+body.home-mode #content { padding:0; }
+.home-cinema { min-height:100vh; position:relative; isolation:isolate; overflow:hidden; padding:clamp(28px,5vw,76px) clamp(20px,7vw,110px) 54px; background:radial-gradient(ellipse at 72% 38%,rgba(44,68,132,.28),transparent 35%),radial-gradient(ellipse at 20% 70%,rgba(54,35,107,.2),transparent 38%),#050711; }
+.home-cinema:before { content:""; position:absolute; inset:0; z-index:-1; opacity:.42; background-image:radial-gradient(1px 1px at 7% 13%,#fff 98%,transparent),radial-gradient(1px 1px at 20% 62%,#c6ddff 98%,transparent),radial-gradient(1.5px 1.5px at 31% 28%,#fff 98%,transparent),radial-gradient(1px 1px at 46% 77%,#b6c7ff 98%,transparent),radial-gradient(1px 1px at 67% 14%,#fff 98%,transparent),radial-gradient(1.5px 1.5px at 82% 57%,#fff 98%,transparent),radial-gradient(1px 1px at 92% 25%,#d4dfff 98%,transparent); background-size:380px 310px; animation:star-drift 48s linear infinite; }
+@keyframes star-drift { from{background-position:0 0} to{background-position:380px 310px} }
+.home-nav { display:flex; justify-content:space-between; align-items:center; gap:20px; position:relative; z-index:2; }
+.home-brand { font-weight:850; letter-spacing:.2em; font-size:13px; color:#eef3ff; }
+.home-brand span { color:#85e8e5; }
+.home-version { color:#8c9ab8; font-size:10px; letter-spacing:.16em; }
+.home-hero { min-height:min(76vh,780px); display:grid; grid-template-columns:minmax(0,1.1fr) minmax(270px,.9fr); align-items:center; gap:clamp(20px,5vw,80px); position:relative; z-index:1; }
+.home-copy { max-width:760px; padding:50px 0 65px; }
+.home-kicker { color:#83e6e2; font-size:10px; font-weight:750; letter-spacing:.23em; line-height:1.8; text-transform:uppercase; }
+.home-copy h1 { font-size:clamp(42px,7.2vw,96px); line-height:.99; letter-spacing:-.065em; margin:22px 0 24px; font-weight:780; }
+.home-copy h1 em { color:#a7baff; font-style:normal; }
+.home-copy p { max-width:570px; color:#aab6d0; font-size:clamp(14px,1.4vw,17px); line-height:1.9; }
+.home-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:30px; }
+.home-actions .btn { padding:13px 18px; border-radius:999px; }
+.home-actions .btn.primary { background:#b8f2ee; color:#08121b; border-color:#b8f2ee; font-weight:800; }
+.home-actions .btn:not(.primary) { background:rgba(12,20,37,.72); border:1px solid #34405d; color:#e9efff; }
+.home-orbit { width:min(100%,480px); aspect-ratio:1; position:relative; justify-self:center; display:grid; place-items:center; filter:drop-shadow(0 0 48px rgba(93,116,255,.14)); }
+.orbit-ring { position:absolute; width:82%; height:32%; border:1px solid rgba(139,177,255,.48); border-radius:50%; transform:rotate(-32deg); }
+.orbit-ring.r2 { width:100%; height:46%; transform:rotate(52deg); border-color:rgba(137,232,225,.3); }
+.orbit-ring.r3 { width:70%; height:70%; border-color:rgba(166,154,255,.22); transform:rotate(18deg); }
+.orbit-core { width:31%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 32% 27%,#efffff 0,#91d9f1 9%,#657edc 32%,#282c69 60%,#090d20 76%); box-shadow:0 0 42px rgba(101,151,255,.35),inset -15px -13px 25px rgba(0,0,0,.55); animation:core-breathe 6s ease-in-out infinite; }
+.orbit-dot { position:absolute; width:10px; height:10px; border-radius:50%; background:#a9f5ed; box-shadow:0 0 18px #8de8e2; top:23%; left:23%; }
+.orbit-dot.d2 { top:68%; left:78%; width:7px; height:7px; background:#c0b5ff; box-shadow:0 0 15px #a79bff; }
+@keyframes core-breathe { 0%,100%{transform:scale(.98);filter:brightness(.95)} 50%{transform:scale(1.035);filter:brightness(1.15)} }
+.home-scrollhint { color:#71809f; font-size:10px; letter-spacing:.18em; text-transform:uppercase; margin-top:8px; }
+.home-labs { max-width:1400px; margin:0 auto; padding:30px 0 12px; position:relative; z-index:1; }
+.home-section-head { display:flex; justify-content:space-between; align-items:end; gap:18px; margin:0 0 24px; }
+.home-section-head h2 { margin:8px 0 0; font-size:clamp(24px,3vw,38px); letter-spacing:-.04em; }
+.home-section-head p { margin:0; color:#8997b4; font-size:12px; }
+.home-lab-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.home-lab-grid .card { min-height:190px; background:linear-gradient(145deg,rgba(19,29,49,.86),rgba(9,14,27,.9)); border:1px solid rgba(122,148,197,.2); transition:transform .22s,border-color .22s,background .22s; }
+.home-lab-grid .card:hover { transform:translateY(-4px); border-color:rgba(128,227,222,.55); background:linear-gradient(145deg,rgba(24,39,64,.95),rgba(9,14,27,.96)); }
+.home-method { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:32px 0 72px; }
+.home-method article { border-top:1px solid #34405b; padding:18px 8px 0 0; }
+.home-method b { display:block; color:#83e6e2; font-size:10px; letter-spacing:.18em; margin-bottom:10px; }
+.home-method h3 { margin:0 0 8px; font-size:17px; }
+.home-method p { margin:0; color:#8f9db9; font-size:12px; line-height:1.8; }
+.home-foot { border-top:1px solid rgba(122,148,197,.18); padding-top:20px; display:flex; justify-content:space-between; gap:12px; color:#65738e; font-size:10px; letter-spacing:.1em; }
+@media(max-width:850px){.home-hero{grid-template-columns:1fr;min-height:auto;padding-top:50px}.home-copy{padding:25px 0 0}.home-orbit{width:min(76vw,350px);margin:10px auto 35px}.home-lab-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.home-cinema{padding:24px 18px 35px}.home-copy h1{font-size:clamp(42px,13vw,66px)}.home-lab-grid,.home-method{grid-template-columns:1fr}.home-section-head{align-items:start;flex-direction:column}.home-version{font-size:9px}.home-foot{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.home-cinema:before,.orbit-core{animation:none}.home-lab-grid .card{transition:none}}
+
 </style>
 </head>
 <body>
@@ -729,9 +342,7 @@ function stack(items) {
 function navigate(page) {
   if (!Object.prototype.hasOwnProperty.call(TITLES, page)) page = "home";
   stopSimulation();
-  
-document.body.classList.toggle("home-mode", page === "home");
-
+  document.body.classList.toggle("home-mode", page === "home");
   S.page = page;
 
   document.querySelectorAll("[data-page]").forEach(el => {
@@ -791,95 +402,53 @@ function render(page) {
 
 /* ---------- ANA SAYFA ---------- */
 
-
 function renderHome() {
-  document.body.classList.add("home-mode");
-
   content.innerHTML = `
     <section class="home-cinema">
-      <div class="home-topbar">
-        <div class="home-brand">
-          <span class="home-brand-mark">∿</span>
-          <span>UNIVERSE LAB</span>
+      <nav class="home-nav" aria-label="Ana gezinme">
+        <div class="home-brand">UNIVERSE <span>LAB</span></div>
+        <div class="home-version">INQUIRY · MODEL · UNCERTAINTY</div>
+      </nav>
+      <div class="home-hero">
+        <div class="home-copy">
+          <div class="home-kicker">INTERACTIVE RESEARCH ENVIRONMENT · 01—24</div>
+          <h1>Bir evreni<br><em>ne kadar</em><br>bilebiliriz?</h1>
+          <p>Gerçekliği doğrudan göremiyorsak, onu nasıl anlayabiliriz? Kendi evrenini kur; sınırlı gözlemlerle veriyi incele, fiziksel yasalar hakkında hipotezler geliştir ve bilginin sınırlarını keşfet.</p>
+          <div class="home-actions">
+            <button class="btn primary" type="button" data-action="start">Keşfe başla <span aria-hidden="true">↗</span></button>
+            <button class="btn" type="button" data-action="map">Araştırma haritası <span aria-hidden="true">→</span></button>
+          </div>
+          <div class="home-scrollhint">MODELLE · GÖZLEMLE · ÇIKARIM YAP</div>
         </div>
-        <div class="home-status">Açık bir araştırma evreni</div>
-      </div>
-
-      <div class="home-orbit-scene" aria-hidden="true">
-        <div class="home-orbit"></div>
-        <div class="home-orbit"></div>
-        <div class="home-orbit"></div>
-        <div class="home-core"></div>
-      </div>
-
-      <div class="home-copy">
-        <div class="home-eyebrow">Fizik · Kozmos · Bilginin sınırları</div>
-
-        <h1 class="home-title">
-          Bir evreni
-          <span>ne kadar</span>
-          bilebiliriz?
-        </h1>
-
-        <p class="home-description">
-          Evreni yalnızca gözlemleme. Modeller kur, verileri sorgula
-          ve bildiklerimizin sınırlarını keşfet. Her cevap, yeni bir
-          sorunun başlangıcı olabilir.
-        </p>
-
-        <div class="home-actions">
-          <button class="home-action" data-action="start">
-            Keşfe başla <span aria-hidden="true">↗</span>
-          </button>
-          <button class="home-action secondary" data-action="map">
-            Araştırma haritası <span aria-hidden="true">⌘</span>
-          </button>
+        <div class="home-orbit" aria-label="Yörüngelerle temsil edilen soyut evren görseli">
+          <div class="orbit-ring"></div><div class="orbit-ring r2"></div><div class="orbit-ring r3"></div>
+          <div class="orbit-core"></div><span class="orbit-dot"></span><span class="orbit-dot d2"></span>
         </div>
       </div>
-
-      <div class="home-bottom">
-        <article class="home-stage">
-          <div class="home-stage-number">01 / MODEL</div>
-          <h3>Bir evren kur</h3>
-          <p>Varsayımlarını belirle ve fiziksel bir sistem oluştur.</p>
-        </article>
-
-        <article class="home-stage">
-          <div class="home-stage-number">02 / GÖZLEM</div>
-          <h3>Kanıtları topla</h3>
-          <p>Sinyalleri incele; gürültü ve belirsizlikle yüzleş.</p>
-        </article>
-
-        <article class="home-stage">
-          <div class="home-stage-number">03 / ÇIKARIM</div>
-          <h3>Sınırları keşfet</h3>
-          <p>Gözlemlerin neyi kanıtladığını ve neyi kanıtlayamadığını sorgula.</p>
-        </article>
-      </div>
-
-      <div class="home-scroll">Merakın peşinden git ↓</div>
-    </section>
-
-    <section class="home-labs">
-      <div class="home-section-kicker">Keşif alanları / Research modules</div>
-      <h2 class="home-section-title">Evreni farklı açılardan sorgula.</h2>
-      <p class="home-section-description">
-        Her laboratuvar farklı bir fiziksel problem ve farklı bir
-        düşünme biçimi sunar. Bir modelin içine gir, değişkenleri
-        incele ve kendi sonuçlarını çıkar.
-      </p>
-
-      <div class="home-lab-grid">
-        ${card("◉", "01", "Evrenin kurucusu", "Bir evrenin temel parametrelerini belirle.", "creator")}
-        ${card("◎", "02", "Üç cisim problemi", "Kaotik yörüngeleri ve çok cisimli sistemleri incele.", "threebody")}
-        ${card("⌁", "03", "Sinyal ve gözlem", "Uzaklık, gecikme ve gürültünün bilgiyi nasıl sınırladığını araştır.", "signal")}
-        ${card("∿", "04", "Doğa yasaları", "Fiziksel yasaların sonuçlarını ve varsayımlarını sorgula.", "laws")}
-        ${card("◌", "05", "Gözlemci", "Ölçümün ve gözlemcinin rolünü keşfet.", "observer")}
-        ${card("⌘", "06", "Araştırma merkezi", "Araştırma sorularını ve deneylerini keşfet.", "research")}
-      </div>
-    </section>
-  `;
+      <section class="home-labs">
+        <div class="home-section-head"><div><div class="home-kicker">YOUR RESEARCH ENVIRONMENT</div><h2>Evreni araştırmaya başla.</h2></div><p>Birbirine bağlı deney alanları</p></div>
+        <div class="home-lab-grid">
+          ${card("◉","01","Evreni kur","Başlangıç koşullarını ve fizik parametrelerini seç.","creator")}
+          ${card("◎","02","Üç cisim problemi","Başlangıç koşullarının yörüngeleri nasıl değiştirdiğini gözlemle.","threebody")}
+          ${card("∿","03","Sinyal laboratuvarı","Gürültü, gecikme ve uzaklığın bilgiyi nasıl sınırladığını incele.","signal")}
+          ${card("⌘","04","Enerji ve entropi","Düzen, enerji ve olası durumlar arasındaki ilişkiyi araştır.","entropy")}
+          ${card("◇","05","Fizik yasalarını keşfet","Rakip hipotezleri gözlemlerle karşılaştır.","laws")}
+          ${card("◌","06","Gözlemci laboratuvarı","Sınırlı ölçüm bütçesinin çıkarımlarını nasıl etkilediğini gör.","observer")}
+          ${card("▤","07","Evren ve bellek","Gözlem kayıtlarının birikimini ve bilgi kaybını düşün.","memory")}
+          ${card("⌁","08","Karar ajanı","Belirsizlik altında farklı kararların sonuçlarını karşılaştır.","agent")}
+          ${card("↗","09","Araştırma merkezi","Hipotezlerini ve araştırma notlarını bir araya getir.","research")}
+        </div>
+        <div class="home-method">
+          <article><b>01 / MODEL</b><h3>Bir sistem kur.</h3><p>Başlangıç koşullarını ve varsayımlarını açıkça belirle.</p></article>
+          <article><b>02 / OBSERVE</b><h3>Kanıt topla.</h3><p>Gözlemin sınırlı olduğunu ve verinin gürültü içerebileceğini unutma.</p></article>
+          <article><b>03 / INFER</b><h3>Çıkarımını sın sın.</h3><p>Hipotezlerini karşılaştır; gözlemin neyi kanıtlamadığını da kaydet.</p></article>
+        </div>
+        <div class="home-foot"><span>UNIVERSE LAB · RESEARCH PROJECT</span><span>BİR EVRENİ NE KADAR BİLEBİLİRİZ?</span></div>
+      </section>
+    </section>`;
 }
+
+/* ---------- 24 BAŞLIK ---------- */
 
 function renderMap() {
   content.innerHTML = head("PROJECT MAP","Araştırma Haritası",
