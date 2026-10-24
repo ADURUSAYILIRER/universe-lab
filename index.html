@@ -172,6 +172,153 @@ body.home-mode #content { padding:0; }
 @media(max-width:540px){.home-cinema{padding:24px 18px 35px}.home-copy h1{font-size:clamp(42px,13vw,66px)}.home-lab-grid,.home-method{grid-template-columns:1fr}.home-section-head{align-items:start;flex-direction:column}.home-version{font-size:9px}.home-foot{flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.home-cinema:before,.orbit-core{animation:none}.home-lab-grid .card{transition:none}}
 
+
+/* UNIVERSE LAB — VISUAL LAB CARDS */
+
+.home-lab-grid .lab-visual-card {
+  padding: 0;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  border-radius: 18px;
+  background: #080b19;
+  border: 1px solid rgba(151, 165, 255, .2);
+  transition: transform .35s ease, border-color .35s ease,
+              box-shadow .35s ease;
+}
+
+.home-lab-grid .lab-visual-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(151, 126, 255, .8);
+  box-shadow: 0 18px 55px rgba(67, 52, 180, .22);
+}
+
+.lab-art {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 70% 30%, #7148db 0%, transparent 35%),
+    radial-gradient(ellipse at 25% 70%, #155d9a 0%, transparent 40%),
+    #080b19;
+}
+
+.lab-art img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  opacity: .88;
+  transition: transform .8s cubic-bezier(.2,.7,.2,1),
+              opacity .4s ease;
+}
+
+.lab-visual-card:hover .lab-art img {
+  transform: scale(1.09);
+  opacity: 1;
+}
+
+.lab-art-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(4, 6, 18, .15),
+    transparent 35%,
+    rgba(4, 6, 18, .88)
+  );
+  pointer-events: none;
+}
+
+.lab-art-tag,
+.lab-art-number {
+  position: absolute;
+  z-index: 2;
+  top: 16px;
+  font: 700 9px/1.4 system-ui, sans-serif;
+  letter-spacing: .16em;
+  color: #fff;
+}
+
+.lab-art-tag {
+  left: 16px;
+  padding: 7px 9px;
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: 5px;
+  background: rgba(7, 10, 28, .45);
+  backdrop-filter: blur(10px);
+}
+
+.lab-art-number {
+  right: 16px;
+  color: #d4c7ff;
+  font-size: 12px;
+}
+
+.lab-art-orbit {
+  position: absolute;
+  width: 160px;
+  height: 60px;
+  border: 1px solid rgba(180, 163, 255, .55);
+  border-radius: 50%;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%) rotate(-28deg);
+  opacity: .65;
+  pointer-events: none;
+  transition: transform .6s ease;
+}
+
+.lab-visual-card:hover .lab-art-orbit {
+  transform: translate(-50%, -50%) rotate(-12deg) scale(1.25);
+}
+
+.lab-card-copy {
+  padding: 20px 20px 22px;
+}
+
+.lab-card-icon {
+  color: #a99aff;
+  font-size: 23px;
+  margin-bottom: 12px;
+}
+
+.home-lab-grid .lab-visual-card h3 {
+  color: #f5f4ff;
+  font-size: 19px;
+  line-height: 1.3;
+  margin: 0 0 9px;
+}
+
+.home-lab-grid .lab-visual-card p {
+  color: #a6b0ca;
+  line-height: 1.7;
+  font-size: 12px;
+  margin: 0 0 18px;
+}
+
+.home-lab-grid .lab-visual-card .small {
+  color: #b9aaff;
+  font-size: 11px;
+  letter-spacing: .04em;
+}
+
+.lab-art.art-fallback {
+  background:
+    radial-gradient(circle at 68% 38%, rgba(161, 91, 255, .9), transparent 8%),
+    radial-gradient(ellipse at 65% 40%, rgba(65, 97, 255, .65), transparent 32%),
+    radial-gradient(ellipse at 30% 80%, rgba(0, 210, 220, .32), transparent 42%),
+    #070916;
+}
+
+@media (max-width: 540px) {
+  .lab-art {
+    height: 200px;
+  }
+}
+
+  
 </style>
 </head>
 <body>
@@ -326,11 +473,51 @@ function head(kicker, title, description) {
     <h1>${title}</h1><p>${description}</p></header>`;
 }
 
+
 function card(icon, number, title, description, page) {
-  return `<article class="card card-link" role="button" tabindex="0" data-page="${page}">
-    <div class="num">${number}</div><div class="icon">${icon}</div>
-    <h3>${title}</h3><p>${description}</p><span class="small">Çalışma alanını aç →</span>
-  </article>`;
+  const artwork = {
+    creator: {
+      image: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1000&q=85",
+      tag: "COSMIC ORIGINS"
+    },
+    threebody: {
+      image: "https://images.unsplash.com/photo-1464802686167-b939a6910659?auto=format&fit=crop&w=1000&q=85",
+      tag: "GRAVITATIONAL DYNAMICS"
+    },
+    signal: {
+      image: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=1000&q=85",
+      tag: "SIGNAL / NOISE"
+    },
+    entropy: {
+      image: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1000&q=85",
+      tag: "ENERGY / ENTROPY"
+    }
+  };
+
+  const art = artwork[page] || artwork.creator;
+
+  return `
+    <article class="card card-link lab-visual-card"
+      role="button" tabindex="0" data-page="${page}">
+      <div class="lab-art">
+        <img
+          src="${art.image}"
+          alt="${title} — uzay görseli"
+          loading="lazy"
+          onerror="this.parentElement.classList.add('art-fallback');this.remove()">
+        <div class="lab-art-shade"></div>
+        <span class="lab-art-tag">${art.tag}</span>
+        <span class="lab-art-number">${number}</span>
+        <span class="lab-art-orbit"></span>
+      </div>
+      <div class="lab-card-copy">
+        <div class="lab-card-icon">${icon}</div>
+        <h3>${title}</h3>
+        <p>${description}</p>
+        <span class="small">Laboratuvarı aç <span aria-hidden="true">↗</span></span>
+      </div>
+    </article>`;
+
 }
 
 function stack(items) {
