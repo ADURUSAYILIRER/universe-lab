@@ -318,10 +318,136 @@ body.home-mode #content { padding:0; }
   }
 }
 
-  
+/* ---------- KOZMİK ARKA PLAN VE CAM PANELLER ---------- */
+
+#cosmos { position:fixed; inset:0; width:100vw; height:100vh; z-index:0; pointer-events:none; box-shadow:none;
+  border:0; border-radius:0; background:transparent; }
+body { background:radial-gradient(ellipse at 80% -10%,#16244a 0,transparent 45%),
+  radial-gradient(ellipse at -10% 110%,#21154a 0,transparent 45%),#050711; background-attachment:fixed; }
+body.home-mode { background:radial-gradient(ellipse at 80% -10%,#16244a 0,transparent 45%),
+  radial-gradient(ellipse at -10% 110%,#21154a 0,transparent 45%),#050711; }
+.app { position:relative; z-index:1; }
+.sidebar { background:rgba(8,12,22,.62); backdrop-filter:blur(16px) saturate(1.3);
+  -webkit-backdrop-filter:blur(16px) saturate(1.3); border-right-color:rgba(122,148,197,.16); }
+.home-cinema { background:radial-gradient(ellipse at 72% 38%,rgba(44,68,132,.28),transparent 35%),
+  radial-gradient(ellipse at 20% 70%,rgba(54,35,107,.2),transparent 38%); }
+.card, .item, .topic { backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+.card { background:linear-gradient(160deg,rgba(22,32,52,.78),rgba(11,16,29,.82));
+  border-color:rgba(122,148,197,.18); box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 20px 50px -30px rgba(0,0,0,.8); }
+.item, .topic { background:rgba(9,14,26,.7); }
+.notice { background:rgba(36,28,70,.45); }
+canvas { background:#03050c; border-color:rgba(122,148,197,.2); box-shadow:0 0 0 1px rgba(123,229,229,.04),0 30px 60px -35px rgba(80,110,255,.45); }
+
+/* Gezinme: kayan vurgu ve parlak aktif çizgi */
+.nav button { position:relative; transition:background .25s,color .25s,padding-left .25s; }
+.nav button:hover { padding-left:15px; }
+.nav button.active { background:linear-gradient(90deg,rgba(123,229,229,.16),rgba(123,229,229,0));
+  box-shadow:inset 2px 0 var(--cyan),-6px 0 18px -6px rgba(123,229,229,.7); }
+
+/* Düğmeler: ışık süpürmesi */
+.btn { position:relative; overflow:hidden; transition:transform .2s,box-shadow .25s,filter .2s; }
+.btn:hover { transform:translateY(-1px); box-shadow:0 10px 26px -12px rgba(123,229,229,.55); }
+.btn:active { transform:translateY(0) scale(.98); }
+.btn:after { content:""; position:absolute; inset:0; transform:translateX(-120%);
+  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%); }
+.btn:hover:after { transform:translateX(120%); transition:transform .7s ease; }
+
+/* Başlıklarda akan renk geçişi */
+.page-head h1, .home-copy h1 em, .home-section-head h2 {
+  background:linear-gradient(100deg,#f3f6ff 0%,#a7baff 35%,#7be5e5 55%,#f3f6ff 80%);
+  background-size:220% 100%; -webkit-background-clip:text; background-clip:text; color:transparent;
+  animation:sheen 9s ease-in-out infinite; }
+.home-copy h1 em { background:linear-gradient(100deg,#a7baff 0%,#7be5e5 40%,#d7b8ff 70%,#a7baff 100%);
+  background-size:220% 100%; -webkit-background-clip:text; background-clip:text; }
+@keyframes sheen { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+
+/* Sayfa geçişleri */
+#topProgress { position:fixed; top:0; left:0; height:2px; width:0; z-index:50; pointer-events:none;
+  background:linear-gradient(90deg,#7be5e5,#a7baff,#d7b8ff); box-shadow:0 0 12px #7be5e5; opacity:0; }
+#topProgress.run { animation:progress .6s cubic-bezier(.2,.7,.2,1) forwards; }
+@keyframes progress { 0%{width:0;opacity:1} 70%{width:85%;opacity:1} 100%{width:100%;opacity:0} }
+#content.leaving { animation:page-out .18s ease-in forwards; }
+@keyframes page-out { to{opacity:0;transform:translateY(-8px);filter:blur(6px)} }
+.reveal { animation:rise .7s cubic-bezier(.2,.75,.25,1) both; animation-delay:calc(var(--i,0) * 55ms); }
+@keyframes rise { from{opacity:0;transform:translateY(22px) scale(.985);filter:blur(8px)} to{opacity:1;transform:none;filter:none} }
+.scroll-reveal { opacity:0; transform:translateY(34px); transition:opacity .9s ease,transform .9s cubic-bezier(.2,.75,.25,1); transition-delay:calc(var(--i,0) * 70ms); }
+.scroll-reveal.seen { opacity:1; transform:none; }
+
+/* Ana sayfa başlığı: satır satır açılış */
+.home-copy h1 .line { display:block; overflow:hidden; padding-bottom:.06em; }
+.home-copy h1 .line > span { display:inline-block; animation:line-up 1.1s cubic-bezier(.2,.8,.2,1) both; }
+.home-copy h1 .line:nth-child(2) > span { animation-delay:.12s; }
+.home-copy h1 .line:nth-child(3) > span { animation-delay:.24s; }
+@keyframes line-up { from{transform:translateY(105%);opacity:0} to{transform:none;opacity:1} }
+.home-copy > p, .home-actions, .home-scrollhint, .home-copy .home-kicker { animation:rise 1s cubic-bezier(.2,.75,.25,1) both; }
+.home-copy .home-kicker { animation-delay:.05s; } .home-copy > p { animation-delay:.45s; }
+.home-actions { animation-delay:.6s; } .home-scrollhint { animation-delay:.75s; }
+
+/* Ana sayfa yörüngesi: dönen halkalar, yörüngede gezen uydular, fareyle eğilme */
+.home-orbit { perspective:900px; animation:rise 1.4s .2s cubic-bezier(.2,.75,.25,1) both; }
+.orbit-stage { position:absolute; inset:0; display:grid; place-items:center; transform-style:preserve-3d;
+  transition:transform .6s cubic-bezier(.2,.7,.2,1); }
+.orbit-ring { animation:ring-spin 38s linear infinite; }
+.orbit-ring.r2 { animation-duration:54s; animation-direction:reverse; }
+.orbit-ring.r3 { animation-duration:70s; }
+@keyframes ring-spin { from{rotate:0deg} to{rotate:360deg} }
+.orbit-sats { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; z-index:2; }
+.orbit-path { position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; }
+.orbit-path i { position:absolute; width:var(--d); height:var(--d); border-radius:50%;
+  animation:orbit var(--t) linear infinite; animation-delay:var(--delay,0s); }
+.orbit-path i:before { content:""; position:absolute; top:-5px; left:50%; width:var(--s,9px); height:var(--s,9px);
+  border-radius:50%; background:var(--c); box-shadow:0 0 18px var(--c),0 0 4px #fff; transform:translateX(-50%); }
+@keyframes orbit { to{transform:rotate(360deg)} }
+.orbit-flat { transform:rotateX(68deg) rotateZ(-20deg); transform-style:preserve-3d; }
+.orbit-glow { position:absolute; width:60%; aspect-ratio:1; border-radius:50%;
+  background:radial-gradient(circle,rgba(110,140,255,.35),transparent 65%); filter:blur(20px); animation:core-breathe 6s ease-in-out infinite; }
+.orbit-dot { display:none; }
+
+/* Laboratuvar kartları: özel SVG sahneleri, fareyi izleyen ışık ve 3B eğilme */
+.home-lab-grid .lab-visual-card { transform-style:preserve-3d; will-change:transform;
+  transition:transform .5s cubic-bezier(.2,.7,.2,1),border-color .35s,box-shadow .35s; }
+.home-lab-grid .lab-visual-card:hover { transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-6px); }
+.lab-visual-card:before { content:""; position:absolute; inset:0; z-index:3; pointer-events:none; opacity:0; transition:opacity .3s;
+  background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(150,180,255,.16),transparent 45%); }
+.lab-visual-card:hover:before { opacity:1; }
+.lab-art svg { position:absolute; inset:0; width:100%; height:100%; display:block; transition:transform .8s cubic-bezier(.2,.7,.2,1); }
+.lab-visual-card:hover .lab-art svg { transform:scale(1.07); }
+.lab-art .lab-art-orbit { display:none; }
+.lab-art { background:radial-gradient(ellipse at 50% 120%,rgba(70,90,220,.35),transparent 60%),#060917; }
+.lab-visual-card:focus-visible { outline:2px solid var(--cyan); outline-offset:3px; }
+
+/* SVG animasyonlarında kullanılan sınıflar */
+.spin { transform-box:fill-box; transform-origin:center; animation:ring-spin var(--t,20s) linear infinite; }
+.spin-rev { animation-direction:reverse; }
+.pulse { transform-box:fill-box; transform-origin:center; animation:pulse 2.6s ease-in-out infinite; animation-delay:var(--d,0s); }
+@keyframes pulse { 0%,100%{opacity:.35;transform:scale(.85)} 50%{opacity:1;transform:scale(1.15)} }
+.dash { stroke-dasharray:6 8; animation:dash 3s linear infinite; }
+@keyframes dash { to{stroke-dashoffset:-56} }
+.draw { stroke-dasharray:var(--len,600); stroke-dashoffset:var(--len,600); animation:draw 4s ease-in-out infinite alternate; animation-delay:var(--d,0s); }
+@keyframes draw { to{stroke-dashoffset:0} }
+.drift { animation:drift var(--t,6s) ease-in-out infinite alternate; animation-delay:var(--d,0s); }
+@keyframes drift { to{transform:translate(var(--x,0),var(--y,0))} }
+.sweep { transform-origin:160px 110px; animation:ring-spin 4s linear infinite; }
+.bar { transform-box:fill-box; transform-origin:bottom; animation:bar 3.2s ease-in-out infinite alternate; animation-delay:var(--d,0s); }
+@keyframes bar { from{transform:scaleY(.25)} to{transform:scaleY(1)} }
+
+/* Simülasyon ekranlarındaki metrikler canlı dursun */
+.metric { background:linear-gradient(90deg,#fff,#a7baff); -webkit-background-clip:text; background-clip:text; color:transparent;
+  font-variant-numeric:tabular-nums; }
+.metric.bump { animation:bump .5s cubic-bezier(.2,.8,.2,1); }
+@keyframes bump { 0%{transform:scale(.9);filter:blur(3px)} 100%{transform:none;filter:none} }
+.topic { transition:transform .25s,border-color .25s,background .25s; }
+.topic:hover { transform:translateX(4px); background:rgba(25,38,62,.75); }
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after { animation:none !important; transition:none !important; }
+  .scroll-reveal { opacity:1; transform:none; }
+}
 </style>
 </head>
 <body>
+<canvas id="cosmos" aria-hidden="true"></canvas>
+<div id="topProgress" aria-hidden="true"></div>
 <div class="app">
   <aside class="sidebar">
     <div class="brand">UNIVERSE <span>LAB</span></div>
@@ -477,11 +603,109 @@ function stack(items) {
   return `<div class="stack">${items.map(item => `<div class="item">${item}</div>`).join("")}</div>`;
 }
 
+/* ---------- LABORATUVAR KARTI GÖRSELLERİ (animasyonlu SVG) ---------- */
+
+// Her yüklemede aynı görünsün diye sabit tohumlu rastgele sayı üreteci.
+function seeded(seed) {
+  return () => (seed = (seed*16807) % 2147483647) / 2147483647;
+}
+
+function labArt(page) {
+  const rnd = seeded(page.length*977 + page.charCodeAt(0));
+  const svg = inner => `<svg viewBox="0 0 320 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <radialGradient id="${page}-glow"><stop offset="0" stop-color="#9fb4ff" stop-opacity=".9"/><stop offset="1" stop-color="#4b3fd8" stop-opacity="0"/></radialGradient>
+      <linearGradient id="${page}-line" x1="0" x2="1"><stop offset="0" stop-color="#7be5e5"/><stop offset=".55" stop-color="#a7baff"/><stop offset="1" stop-color="#d7b8ff"/></linearGradient>
+      <filter id="${page}-blur"><feGaussianBlur stdDeviation="2.2"/></filter>
+    </defs>${inner}</svg>`;
+  const stars = n => Array.from({length:n}, () =>
+    `<circle cx="${(rnd()*320).toFixed(1)}" cy="${(rnd()*220).toFixed(1)}" r="${(rnd()*.9+.3).toFixed(2)}" fill="#cfe0ff" opacity="${(rnd()*.5+.2).toFixed(2)}"/>`).join("");
+
+  if (page === "creator") {
+    // Sarmal galaksi: iki kol boyunca dizilmiş noktalar yavaşça döner.
+    let dots = "";
+    for (let arm=0; arm<2; arm++) for (let i=0; i<70; i++) {
+      const t=i/70, a=t*4.2+arm*Math.PI, r=6+t*92;
+      const x=160+Math.cos(a)*r+(rnd()-.5)*10*t, y=110+Math.sin(a)*r*.62+(rnd()-.5)*8*t;
+      dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(1.6-t).toFixed(2)}" fill="${t<.35?"#e9f1ff":arm?"#a7baff":"#7be5e5"}" opacity="${(1-t*.6).toFixed(2)}"/>`;
+    }
+    return svg(`${stars(40)}<circle cx="160" cy="110" r="46" fill="url(#${page}-glow)"/>
+      <g class="spin" style="--t:60s">${dots}</g><circle cx="160" cy="110" r="5" fill="#fff"/>`);
+  }
+  if (page === "threebody") {
+    // Üç cisim sekiz şeklindeki (Chenciner–Montgomery) yörüngede birbirini izler.
+    const path = "M160,110 C205,40 280,50 280,110 C280,170 205,180 160,110 C115,40 40,50 40,110 C40,170 115,180 160,110 Z";
+    const colors = ["#7be5e5","#bdaaff","#f5bd85"];
+    return svg(`${stars(45)}<path d="${path}" fill="none" stroke="url(#${page}-line)" stroke-width="1" opacity=".35"/>
+      <path d="${path}" fill="none" stroke="url(#${page}-line)" stroke-width="1.4" class="dash" opacity=".7"/>
+      ${colors.map((c,i)=>`<g><circle r="9" fill="${c}" opacity=".35" filter="url(#${page}-blur)"/><circle r="4.5" fill="${c}"/>
+        <animateMotion dur="7.5s" repeatCount="indefinite" begin="${(-i*2.5).toFixed(1)}s" path="${path}"/></g>`).join("")}`);
+  }
+  if (page === "signal") {
+    // Kaynak sinyal çizilir; gürültülü ölçümler etrafında titreşir.
+    let d = "M0,110", dots = "";
+    for (let x=0; x<=320; x+=4) d += ` L${x},${(110-Math.sin(x*.045)*38-Math.sin(x*.013)*14).toFixed(1)}`;
+    for (let x=8; x<320; x+=16) {
+      const y=110-Math.sin(x*.045)*38-Math.sin(x*.013)*14+(rnd()-.5)*30;
+      dots += `<circle cx="${x}" cy="${y.toFixed(1)}" r="2.6" fill="#bdaaff" class="pulse" style="--d:${(x/320*2.6).toFixed(2)}s"/>`;
+    }
+    return svg(`${stars(25)}<path d="${d}" fill="none" stroke="#7be5e5" stroke-width="6" opacity=".18" filter="url(#${page}-blur)"/>
+      <path d="${d}" fill="none" stroke="url(#${page}-line)" stroke-width="2" class="draw" style="--len:520"/>${dots}`);
+  }
+  if (page === "entropy") {
+    // Kutunun sol yarısında toplanmış parçacıklar zamanla bütün kutuya yayılır.
+    let p = "";
+    for (let i=0; i<60; i++) {
+      const x=70+rnd()*70, y=50+rnd()*120, dx=(rnd()*180-20).toFixed(0), dy=((rnd()-.5)*90).toFixed(0);
+      p += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.2" fill="${i%3?"#7be5e5":"#d7b8ff"}" class="drift" style="--x:${dx}px;--y:${dy}px;--t:${(4+rnd()*4).toFixed(1)}s;--d:${(-rnd()*4).toFixed(1)}s"/>`;
+    }
+    return svg(`${stars(20)}<rect x="60" y="40" width="200" height="140" rx="10" fill="rgba(123,229,229,.03)" stroke="url(#${page}-line)" stroke-opacity=".6"/>
+      <line x1="160" y1="40" x2="160" y2="180" stroke="#a7baff" stroke-opacity=".25" class="dash"/>${p}`);
+  }
+  if (page === "laws") {
+    // F ∝ 1/rⁿ eğri ailesi; gizli yasa vurgulanır ve soru işaretiyle bekler.
+    const curve = n => { let d=""; for (let x=0; x<=230; x+=5) { const r=.35+x/230*2.6; d += `${d?"L":"M"}${60+x},${(185-120/Math.pow(r/.35,n)).toFixed(1)} `; } return d; };
+    return svg(`${stars(25)}<path d="M60,30 V185 H300" fill="none" stroke="#5c6b8c" stroke-width="1"/>
+      ${[1,1.5,3].map(n=>`<path d="${curve(n)}" fill="none" stroke="#a7baff" stroke-opacity=".35" stroke-width="1.2"/>`).join("")}
+      <path d="${curve(2)}" fill="none" stroke="#7be5e5" stroke-width="7" opacity=".2" filter="url(#${page}-blur)"/>
+      <path d="${curve(2)}" fill="none" stroke="url(#${page}-line)" stroke-width="2.4" class="draw" style="--len:420"/>
+      <text x="236" y="70" fill="#d7b8ff" font-size="34" font-weight="700" class="pulse" font-family="system-ui">?</text>
+      <text x="200" y="120" fill="#9fb0d0" font-size="11" font-family="system-ui" letter-spacing="1">F ∝ 1/rⁿ</text>`);
+  }
+  if (page === "observer") {
+    // Radar taraması: sınırlı ölçümler yanıp sönen işaretler olarak belirir.
+    return svg(`${stars(25)}${[30,58,86].map(r=>`<circle cx="160" cy="110" r="${r}" fill="none" stroke="#7be5e5" stroke-opacity=".25"/>`).join("")}
+      <line x1="60" y1="110" x2="260" y2="110" stroke="#7be5e5" stroke-opacity=".15"/><line x1="160" y1="20" x2="160" y2="200" stroke="#7be5e5" stroke-opacity=".15"/>
+      <g class="sweep"><path d="M160,110 L246,110 A86,86 0 0,0 220,49 Z" fill="url(#${page}-line)" opacity=".28"/><line x1="160" y1="110" x2="246" y2="110" stroke="#7be5e5" stroke-width="1.5"/></g>
+      ${[[200,80,0],[120,140,.9],[215,150,1.7],[110,70,2.3]].map(([x,y,d])=>`<circle cx="${x}" cy="${y}" r="4" fill="#d7b8ff" class="pulse" style="--d:${d}s"/>`).join("")}
+      <circle cx="160" cy="110" r="4" fill="#fff"/>`);
+  }
+  if (page === "memory") {
+    // İç içe döngüler: her evren bir öncekinden bir iz taşır.
+    return svg(`${stars(30)}${[22,42,62,82].map((r,i)=>`<circle cx="160" cy="110" r="${r}" fill="none" stroke="url(#${page}-line)" stroke-width="${2-i*.35}" stroke-dasharray="${8+i*6} ${6+i*4}" class="spin ${i%2?"spin-rev":""}" style="--t:${14+i*8}s" opacity="${.9-i*.15}"/>`).join("")}
+      <circle cx="160" cy="110" r="36" fill="url(#${page}-glow)"/>
+      ${[0,1,2,3].map(i=>`<g class="spin" style="--t:${10+i*6}s"><circle cx="${160+22+i*20}" cy="110" r="3" fill="${i%2?"#d7b8ff":"#7be5e5"}"/></g>`).join("")}`);
+  }
+  if (page === "agent") {
+    // Karar ağacı: bilgi kökten dallara akar.
+    const nodes = [[160,40],[100,100],[220,100],[65,165],[135,165],[190,165],[255,165]];
+    const edges = [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6]];
+    return svg(`${stars(25)}${edges.map(([a,b])=>`<line x1="${nodes[a][0]}" y1="${nodes[a][1]}" x2="${nodes[b][0]}" y2="${nodes[b][1]}" stroke="#a7baff" stroke-opacity=".3"/>
+      <line x1="${nodes[a][0]}" y1="${nodes[a][1]}" x2="${nodes[b][0]}" y2="${nodes[b][1]}" stroke="#7be5e5" stroke-width="1.6" class="dash"/>`).join("")}
+      ${nodes.map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${i?7:10}" fill="${i===5?"#7be5e5":"#121a33"}" stroke="${i===5?"#fff":"#a7baff"}" stroke-width="1.5" class="${i===5?"pulse":""}"/>`).join("")}`);
+  }
+  // Araştırma merkezi: yükselen ölçüm çubukları ve eğilim çizgisi.
+  const bars = Array.from({length:9},(_,i)=>{ const h=40+rnd()*100; return `<rect x="${52+i*25}" y="${185-h}" width="14" height="${h.toFixed(0)}" rx="3" fill="url(#${page}-line)" opacity=".75" class="bar" style="--d:${(i*.18).toFixed(2)}s"/>`; }).join("");
+  return svg(`${stars(25)}<path d="M45,185 H290" stroke="#5c6b8c"/>${bars}
+    <path d="M58,150 C110,120 150,135 190,95 S260,60 285,50" fill="none" stroke="#fff" stroke-width="1.6" class="draw" style="--len:300"/>`);
+}
+
 function card(icon, number, title, description, page) {
   return `<article class="card lab-visual-card" role="button" tabindex="0" data-page="${page}">
-    <div class="lab-art art-fallback">
+    <div class="lab-art">
+      ${labArt(page)}
       <span class="lab-art-tag">LAB</span><span class="lab-art-number">${number}</span>
-      <span class="lab-art-orbit"></span><span class="lab-art-shade"></span>
+      <span class="lab-art-shade"></span>
     </div>
     <div class="lab-card-copy">
       <div class="lab-card-icon" aria-hidden="true">${icon}</div>
@@ -496,7 +720,6 @@ function card(icon, number, title, description, page) {
 function navigate(page, addToHistory=true) {
   if (!Object.prototype.hasOwnProperty.call(TITLES, page)) page = "home";
   stopSimulation();
-  document.body.classList.toggle("home-mode", page === "home");
   S.page = page;
 
   document.querySelectorAll("[data-page]").forEach(el => {
@@ -516,8 +739,149 @@ function navigate(page, addToHistory=true) {
     }
   } catch (_) {}
 
-  render(page);
-  window.scrollTo({top:0, behavior:"auto"});
+  // Eski sayfa kısa bir solma ile çıkar, yenisi kademeli olarak belirir.
+  const swap = () => {
+    S.swapTimer = null;
+    document.body.classList.toggle("home-mode", page === "home");
+    render(page);
+    content.classList.remove("leaving");
+    animateIn();
+    window.scrollTo({top:0, behavior:"auto"});
+  };
+  clearTimeout(S.swapTimer);
+  if (!content.children.length || REDUCED_MOTION) swap();
+  else {
+    content.classList.add("leaving");
+    S.swapTimer = setTimeout(swap, 170);
+  }
+}
+
+/* ---------- GÖRSEL EFEKTLER: GEÇİŞLER, EĞİLME, KAYDIRMA ---------- */
+
+const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const progressBar = document.getElementById("topProgress");
+let revealObserver = null;
+
+function animateIn() {
+  progressBar.classList.remove("run");
+  void progressBar.offsetWidth;
+  progressBar.classList.add("run");
+
+  if (S.page === "home") {
+    // Ana sayfada kartlar ekrana girdikçe belirir.
+    revealObserver?.disconnect();
+    const targets = content.querySelectorAll(".home-section-head, .lab-visual-card, .home-method article");
+    if (!("IntersectionObserver" in window) || REDUCED_MOTION) return;
+    revealObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (entry.isIntersecting) { entry.target.classList.add("seen"); revealObserver.unobserve(entry.target); }
+    }), {threshold:.12});
+    targets.forEach((el, i) => {
+      el.classList.add("scroll-reveal");
+      el.style.setProperty("--i", i % 3);
+      revealObserver.observe(el);
+    });
+    return;
+  }
+  // Diğer sayfalarda başlık, paneller ve konu kartları sırayla yükselir.
+  const parts = content.querySelectorAll(":scope > :not(.grid):not(.topic-grid), :scope .grid > *, :scope .topic-grid > *");
+  parts.forEach((el, i) => {
+    el.classList.add("reveal");
+    el.style.setProperty("--i", Math.min(i, 14));
+  });
+}
+
+document.addEventListener("pointermove", event => {
+  if (REDUCED_MOTION || event.pointerType === "touch") return;
+  const labCard = event.target.closest?.(".lab-visual-card");
+  if (labCard) {
+    const r = labCard.getBoundingClientRect();
+    const x = (event.clientX - r.left) / r.width, y = (event.clientY - r.top) / r.height;
+    labCard.style.setProperty("--mx", (x*100).toFixed(1) + "%");
+    labCard.style.setProperty("--my", (y*100).toFixed(1) + "%");
+    labCard.style.setProperty("--ry", ((x-.5)*10).toFixed(2) + "deg");
+    labCard.style.setProperty("--rx", ((.5-y)*8).toFixed(2) + "deg");
+  }
+  const stage = document.getElementById("orbitStage");
+  if (stage) {
+    const dx = event.clientX / innerWidth - .5, dy = event.clientY / innerHeight - .5;
+    stage.style.transform = `rotateY(${(dx*18).toFixed(2)}deg) rotateX(${(-dy*14).toFixed(2)}deg)`;
+  }
+  cosmos.targetX = event.clientX / innerWidth - .5;
+  cosmos.targetY = event.clientY / innerHeight - .5;
+}, {passive:true});
+
+function bump(el) {
+  if (!el) return;
+  el.classList.remove("bump");
+  void el.offsetWidth;
+  el.classList.add("bump");
+}
+
+/* ---------- KOZMİK ARKA PLAN: üç katmanlı yıldız alanı ---------- */
+
+const cosmos = {canvas:document.getElementById("cosmos"), stars:[], x:0, y:0, targetX:0, targetY:0, meteor:null, nextMeteor:0};
+
+function setupCosmos() {
+  const c = cosmos.canvas, ratio = Math.min(window.devicePixelRatio || 1, 2);
+  c.width = Math.floor(innerWidth*ratio);
+  c.height = Math.floor(innerHeight*ratio);
+  cosmos.ratio = ratio;
+  const count = Math.min(420, Math.floor(innerWidth*innerHeight/4200));
+  const rnd = seeded(20260424);
+  cosmos.stars = Array.from({length:count}, () => {
+    const depth = rnd() < .65 ? 1 : rnd() < .75 ? 2 : 3;
+    return {x:rnd(), y:rnd(), depth, size:(.4 + depth*.45 + rnd()*.4), phase:rnd()*6.3, speed:.5 + rnd()*1.6,
+      hue:rnd() < .18 ? "205,190,255" : rnd() < .3 ? "170,240,235" : "225,235,255"};
+  });
+  if (REDUCED_MOTION) drawCosmos(0);
+}
+
+function drawCosmos(time) {
+  const c = cosmos.canvas, ctx = c.getContext("2d"), w = c.width, h = c.height, ratio = cosmos.ratio;
+  cosmos.x += (cosmos.targetX - cosmos.x) * .04;
+  cosmos.y += (cosmos.targetY - cosmos.y) * .04;
+  ctx.clearRect(0, 0, w, h);
+  const scroll = window.scrollY * ratio;
+  for (const s of cosmos.stars) {
+    const shift = s.depth*s.depth*6*ratio;
+    let x = (s.x*w - cosmos.x*shift*3 + time*.004*s.depth*ratio) % w;
+    let y = (s.y*h - cosmos.y*shift*3 - scroll*.04*s.depth) % h;
+    if (x < 0) x += w;
+    if (y < 0) y += h;
+    const twinkle = .55 + .45*Math.sin(time*.001*s.speed + s.phase);
+    ctx.fillStyle = `rgba(${s.hue},${(.25 + .55*twinkle) * (s.depth/3 + .3)})`;
+    ctx.beginPath();
+    ctx.arc(x, y, s.size*ratio*(s.depth === 3 ? .8 + .4*twinkle : 1), 0, Math.PI*2);
+    ctx.fill();
+    if (s.depth === 3 && twinkle > .9) {
+      ctx.strokeStyle = `rgba(${s.hue},${(twinkle-.9)*3})`;
+      ctx.lineWidth = .6*ratio;
+      ctx.beginPath();
+      ctx.moveTo(x - 6*ratio, y); ctx.lineTo(x + 6*ratio, y);
+      ctx.moveTo(x, y - 6*ratio); ctx.lineTo(x, y + 6*ratio);
+      ctx.stroke();
+    }
+  }
+  // Ara sıra bir kayan yıldız geçer.
+  if (!cosmos.meteor && time > cosmos.nextMeteor) {
+    cosmos.meteor = {x:Math.random()*w*.8 + w*.2, y:Math.random()*h*.4, vx:-(6 + Math.random()*4)*ratio, vy:(2.5 + Math.random()*2)*ratio, life:1};
+    cosmos.nextMeteor = time + 5000 + Math.random()*9000;
+  }
+  const m = cosmos.meteor;
+  if (m) {
+    const grad = ctx.createLinearGradient(m.x, m.y, m.x - m.vx*14, m.y - m.vy*14);
+    grad.addColorStop(0, `rgba(230,245,255,${m.life})`);
+    grad.addColorStop(1, "rgba(160,190,255,0)");
+    ctx.strokeStyle = grad; ctx.lineWidth = 1.6*ratio;
+    ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x - m.vx*14, m.y - m.vy*14); ctx.stroke();
+    m.x += m.vx; m.y += m.vy; m.life -= .012;
+    if (m.life <= 0 || m.x < -50) cosmos.meteor = null;
+  }
+}
+
+function cosmosLoop(time) {
+  if (!document.hidden) drawCosmos(time);
+  requestAnimationFrame(cosmosLoop);
 }
 
 document.addEventListener("click", event => {
@@ -571,7 +935,7 @@ function renderHome() {
       <div class="home-hero">
         <div class="home-copy">
           <div class="home-kicker">INTERACTIVE RESEARCH ENVIRONMENT · 01—24</div>
-          <h1>Bir evreni<br><em>ne kadar</em><br>bilebiliriz?</h1>
+          <h1><span class="line"><span>Bir evreni</span></span><span class="line"><span><em>ne kadar</em></span></span><span class="line"><span>bilebiliriz?</span></span></h1>
           <p>Gerçekliği doğrudan göremiyorsak, onu nasıl anlayabiliriz? Kendi evrenini kur; sınırlı gözlemlerle veriyi incele, fiziksel yasalar hakkında hipotezler geliştir ve bilginin sınırlarını keşfet.</p>
           <div class="home-actions">
             <button class="btn primary" type="button" data-action="start">Keşfe başla <span aria-hidden="true">↗</span></button>
@@ -580,8 +944,21 @@ function renderHome() {
           <div class="home-scrollhint">MODELLE · GÖZLEMLE · ÇIKARIM YAP</div>
         </div>
         <div class="home-orbit" aria-label="Yörüngelerle temsil edilen soyut evren görseli">
-          <div class="orbit-ring"></div><div class="orbit-ring r2"></div><div class="orbit-ring r3"></div>
-          <div class="orbit-core"></div><span class="orbit-dot"></span><span class="orbit-dot d2"></span>
+          <div class="orbit-stage" id="orbitStage">
+            <div class="orbit-glow"></div>
+            <div class="orbit-ring"></div><div class="orbit-ring r2"></div><div class="orbit-ring r3"></div>
+            <svg class="orbit-sats" viewBox="0 0 400 400" aria-hidden="true">
+              <defs><filter id="satGlow" x="-2" y="-2" width="5" height="5"><feGaussianBlur stdDeviation="3"/></filter></defs>
+              ${[["M60,200 a140,52 0 1,0 280,0 a140,52 0 1,0 -280,0","-24","#a9f5ed",5,"13s","0s"],
+                 ["M20,200 a180,74 0 1,0 360,0 a180,74 0 1,0 -360,0","38","#c0b5ff",4,"21s","-7s"],
+                 ["M105,200 a95,40 0 1,0 190,0 a95,40 0 1,0 -190,0","12","#f5bd85",3.5,"8s","-2s"]]
+                .map(([d,rot,c,r,dur,begin])=>`<g transform="rotate(${rot} 200 200)">
+                  <path d="${d}" fill="none" stroke="${c}" stroke-opacity=".22" stroke-dasharray="2 6"/>
+                  <g><circle r="${r*2.6}" fill="${c}" opacity=".5" filter="url(#satGlow)"/><circle r="${r}" fill="${c}"/><circle r="${r*.45}" fill="#fff"/>
+                  <animateMotion dur="${dur}" begin="${begin}" repeatCount="indefinite" path="${d}"/></g></g>`).join("")}
+            </svg>
+            <div class="orbit-core"></div>
+          </div>
         </div>
       </div>
       <section class="home-labs">
@@ -799,38 +1176,59 @@ function drawUniverse() {
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   const w=canvas.width,h=canvas.height;
-  ctx.clearRect(0,0,w,h);
-  ctx.fillStyle="#050912"; ctx.fillRect(0,0,w,h);
+  const now=performance.now();
+  const bg=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,Math.max(w,h)*.7);
+  bg.addColorStop(0,"#0b1230"); bg.addColorStop(1,"#03050c");
+  ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
 
-  for (let i=0;i<90;i++) {
+  // Göz kırpan arka plan yıldızları.
+  for (let i=0;i<110;i++) {
     const x=((i*97)%997)/997*w;
     const y=((i*61)%991)/991*h;
-    ctx.fillStyle="rgba(190,210,255,.45)";
-    ctx.fillRect(x,y,2,2);
+    const twinkle=.45+.4*Math.sin(now*.0012*(1+i%5*.3)+i);
+    ctx.fillStyle=`rgba(190,210,255,${twinkle*.6})`;
+    ctx.beginPath(); ctx.arc(x,y,(i%7===0?1.5:.9)*Math.max(1,w/700),0,Math.PI*2); ctx.fill();
   }
 
   const scale=Math.min(w,h)/290;
   const colors=["#7be5e5","#bdaaff","#91baff","#f5bd85","#f28fb8","#a5edbd"];
+  const radius=Math.max(4,6*w/700);
 
+  ctx.globalCompositeOperation="lighter";
   S.positions.forEach((b,i)=>{
     const x=w/2+b.x*scale,y=h/2+b.y*scale;
+    const color=colors[i%colors.length];
     // İz, simülasyon koordinatlarında saklanır; pencere boyutu değişince kaymaz.
     if (S.running) {
       b.trail.push([b.x,b.y]);
-      if (b.trail.length>100) b.trail.shift();
+      if (b.trail.length>160) b.trail.shift();
     }
 
-    ctx.beginPath();
-    b.trail.forEach((p,j)=>{
-      const px=w/2+p[0]*scale,py=h/2+p[1]*scale;
-      j===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
-    });
-    ctx.strokeStyle=colors[i%colors.length];
-    ctx.globalAlpha=.55; ctx.stroke(); ctx.globalAlpha=1;
+    // İz: eskiden yeniye doğru kalınlaşan ve parlaklaşan parçalar.
+    ctx.lineCap="round";
+    ctx.strokeStyle=color;
+    for (let j=1;j<b.trail.length;j++) {
+      const t=j/b.trail.length;
+      ctx.globalAlpha=t*t*.75;
+      ctx.lineWidth=(.6+t*2.2)*Math.max(1,w/700);
+      ctx.beginPath();
+      ctx.moveTo(w/2+b.trail[j-1][0]*scale,h/2+b.trail[j-1][1]*scale);
+      ctx.lineTo(w/2+b.trail[j][0]*scale,h/2+b.trail[j][1]*scale);
+      ctx.stroke();
+    }
+    ctx.globalAlpha=1;
 
-    ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2);
-    ctx.fillStyle=colors[i%colors.length]; ctx.fill();
+    // Cisim: geniş hale + parlak çekirdek.
+    const halo=ctx.createRadialGradient(x,y,0,x,y,radius*5);
+    halo.addColorStop(0,color+"cc"); halo.addColorStop(.25,color+"44"); halo.addColorStop(1,color+"00");
+    ctx.fillStyle=halo;
+    ctx.beginPath(); ctx.arc(x,y,radius*5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle="#ffffff";
+    ctx.beginPath(); ctx.arc(x,y,radius*.55,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=color;
+    ctx.beginPath(); ctx.arc(x,y,radius,0,Math.PI*2); ctx.globalAlpha=.6; ctx.fill(); ctx.globalAlpha=1;
   });
+  ctx.globalCompositeOperation="source-over";
 
   const time=document.getElementById("simTime");
   if (time) time.textContent=S.time.toFixed(1);
@@ -962,6 +1360,7 @@ function generateSignal() {
   const quality=Math.max(0,100*(1-rmse/1.5));
 
   document.getElementById("signalQuality").textContent=quality.toFixed(1)+"%";
+  bump(document.getElementById("signalQuality"));
   drawSignal(original,observed);
 }
 
@@ -974,24 +1373,45 @@ function drawSignal(original,observed) {
   canvas.width=Math.max(1,Math.floor(rect.width*ratio));
   canvas.height=Math.max(1,Math.floor(rect.height*ratio));
   const w=canvas.width,h=canvas.height;
-  ctx.clearRect(0,0,w,h);
+  const toXY=(v,i)=>[i/(original.length-1)*w,h/2-v*h*.28];
+  const started=performance.now(), duration=REDUCED_MOTION?0:1100;
+  cancelAnimationFrame(S.signalRaf);
 
-  function plot(data,color,points=false) {
-    ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2;
-    ctx.beginPath();let started=false;
-    data.forEach((v,i)=>{
-      if(v===null || !Number.isFinite(v)){started=false;return;}
-      const x=i/(data.length-1)*w,y=h/2-v*h*.28;
-      if(points) {
-        ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();
-      } else {
-        if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);
-      }
+  // Sinyal soldan sağa doğru çizilir; ölçümler çizgi geçtikçe belirir.
+  function frame(now) {
+    if(!document.body.contains(canvas))return;
+    const progress=duration?Math.min(1,(now-started)/duration):1;
+    const eased=1-Math.pow(1-progress,3);
+    const last=Math.floor(eased*(original.length-1));
+    ctx.clearRect(0,0,w,h);
+
+    ctx.strokeStyle="rgba(122,148,197,.12)";ctx.lineWidth=1;
+    for(let gx=0;gx<=10;gx++){ctx.beginPath();ctx.moveTo(gx/10*w,0);ctx.lineTo(gx/10*w,h);ctx.stroke();}
+    for(let gy=0;gy<=4;gy++){ctx.beginPath();ctx.moveTo(0,gy/4*h);ctx.lineTo(w,gy/4*h);ctx.stroke();}
+
+    const line=ctx.createLinearGradient(0,0,w,0);
+    line.addColorStop(0,"#7be5e5");line.addColorStop(1,"#a7baff");
+    ctx.save();
+    ctx.shadowColor="#7be5e5";ctx.shadowBlur=14*ratio;
+    ctx.strokeStyle=line;ctx.lineWidth=2.2*ratio;ctx.lineJoin="round";
+    ctx.beginPath();
+    for(let i=0;i<=last;i++){const [x,y]=toXY(original[i],i);i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.shadowColor="#bdaaff";ctx.shadowBlur=10*ratio;ctx.fillStyle="#d7c9ff";
+    observed.forEach((v,i)=>{
+      if(i>last||v===null||!Number.isFinite(v))return;
+      const [x,y]=toXY(v,i);
+      const age=Math.min(1,(last-i)/6);
+      ctx.beginPath();ctx.arc(x,y,(2+1.6*(1-age))*ratio,0,Math.PI*2);ctx.fill();
     });
-    if(!points)ctx.stroke();
+    ctx.restore();
+
+    if(progress<1)S.signalRaf=requestAnimationFrame(frame);
   }
-  plot(original,"#7be5e5");
-  plot(observed,"#bdaaff",true);
+  frame(started);
 }
 
 /* ---------- ENERGY AND ENTROPY ---------- */
@@ -1034,13 +1454,34 @@ function calculateEntropy() {
   const count=30,values=[];
   for(let i=0;i<count;i++)values.push(Math.random());
   if(disorder<.01)values.fill(1);
-  const sum=values.reduce((a,b)=>a+b,0)||1;
-  values.forEach((v,i)=>{
-    const normalized=disorder>.5?v:1-v*.5;
-    const bar=Math.max(2,normalized*h*(energy/100));
-    ctx.fillStyle=disorder>.5?"#bdaaff":"#7be5e5";
-    ctx.fillRect(i/count*w+2,h-bar,w/count-4,bar);
-  });
+  bump(document.getElementById("entropyValue"));
+  const color=disorder>.5?["#d7b8ff","#6b4fd8"]:["#a9f5ed","#2f7fa8"];
+  const started=performance.now(), duration=REDUCED_MOTION?0:800;
+  cancelAnimationFrame(S.entropyRaf);
+
+  // Çubuklar soldan sağa sırayla yükselir.
+  function frame(now) {
+    if(!document.body.contains(canvas))return;
+    const elapsed=now-started;
+    ctx.clearRect(0,0,w,h);
+    values.forEach((v,i)=>{
+      const local=duration?Math.max(0,Math.min(1,(elapsed-i*14)/duration)):1;
+      const eased=1-Math.pow(1-local,3);
+      const normalized=disorder>.5?v:1-v*.5;
+      const bar=Math.max(2,normalized*h*(energy/100)*eased);
+      const x=i/count*w+2,bw=w/count-4;
+      const grad=ctx.createLinearGradient(0,h-bar,0,h);
+      grad.addColorStop(0,color[0]);grad.addColorStop(1,color[1]+"33");
+      ctx.fillStyle=grad;
+      ctx.shadowColor=color[0];ctx.shadowBlur=12;
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(x,h-bar,bw,bar,[4,4,0,0]) : ctx.rect(x,h-bar,bw,bar);
+      ctx.fill();
+    });
+    ctx.shadowBlur=0;
+    if(elapsed<duration+count*14)S.entropyRaf=requestAnimationFrame(frame);
+  }
+  frame(started);
 }
 
 /* ---------- LAW DISCOVERY ---------- */
@@ -1323,11 +1764,14 @@ function runAction(action) {
 /* ---------- BAŞLAT ---------- */
 
 function init() {
+  setupCosmos();
+  if (!REDUCED_MOTION) requestAnimationFrame(cosmosLoop);
   const requested=location.hash.slice(1);
   navigate(Object.prototype.hasOwnProperty.call(TITLES,requested)?requested:"home", false);
 }
 
 window.addEventListener("resize",()=>{
+  setupCosmos();
   if(S.page==="threebody")setupCanvas();
 });
 
