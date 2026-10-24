@@ -477,9 +477,23 @@ function stack(items) {
   return `<div class="stack">${items.map(item => `<div class="item">${item}</div>`).join("")}</div>`;
 }
 
+function card(icon, number, title, description, page) {
+  return `<article class="card lab-visual-card" role="button" tabindex="0" data-page="${page}">
+    <div class="lab-art art-fallback">
+      <span class="lab-art-tag">LAB</span><span class="lab-art-number">${number}</span>
+      <span class="lab-art-orbit"></span><span class="lab-art-shade"></span>
+    </div>
+    <div class="lab-card-copy">
+      <div class="lab-card-icon" aria-hidden="true">${icon}</div>
+      <h3>${title}</h3><p>${description}</p>
+      <span class="small">Laboratuvarı aç →</span>
+    </div>
+  </article>`;
+}
+
 /* ---------- GEZİNME: TEK VE GÜVENLİ GİRİŞ NOKTASI ---------- */
 
-function navigate(page) {
+function navigate(page, addToHistory=true) {
   if (!Object.prototype.hasOwnProperty.call(TITLES, page)) page = "home";
   stopSimulation();
   document.body.classList.toggle("home-mode", page === "home");
@@ -493,8 +507,13 @@ function navigate(page) {
 
   breadcrumb.textContent = "UNIVERSE LAB / " + TITLES[page].toUpperCase();
 
+  // Yeni sayfa geçmişe eklenir; böylece tarayıcının geri tuşu siteden çıkmak
+  // yerine bir önceki sayfaya döner.
   try {
-    history.replaceState(null, "", "#" + page);
+    if (location.hash !== "#" + page) {
+      if (addToHistory) history.pushState(null, "", "#" + page);
+      else history.replaceState(null, "", "#" + page);
+    }
   } catch (_) {}
 
   render(page);
@@ -520,9 +539,9 @@ document.addEventListener("keydown", event => {
   }
 });
 
-window.addEventListener("hashchange", () => {
-  const page = location.hash.slice(1);
-  if (page && page !== S.page) navigate(page);
+window.addEventListener("popstate", () => {
+  const page = location.hash.slice(1) || "home";
+  if (page !== S.page) navigate(page, false);
 });
 
 function render(page) {
@@ -581,7 +600,7 @@ function renderHome() {
         <div class="home-method">
           <article><b>01 / MODEL</b><h3>Bir sistem kur.</h3><p>Başlangıç koşullarını ve varsayımlarını açıkça belirle.</p></article>
           <article><b>02 / OBSERVE</b><h3>Kanıt topla.</h3><p>Gözlemin sınırlı olduğunu ve verinin gürültü içerebileceğini unutma.</p></article>
-          <article><b>03 / INFER</b><h3>Çıkarımını sın sın.</h3><p>Hipotezlerini karşılaştır; gözlemin neyi kanıtlamadığını da kaydet.</p></article>
+          <article><b>03 / INFER</b><h3>Çıkarımını sına.</h3><p>Hipotezlerini karşılaştır; gözlemin neyi kanıtlamadığını da kaydet.</p></article>
         </div>
         <div class="home-foot"><span>UNIVERSE LAB · RESEARCH PROJECT</span><span>BİR EVRENİ NE KADAR BİLEBİLİRİZ?</span></div>
       </section>
@@ -795,11 +814,17 @@ function drawUniverse() {
 
   S.positions.forEach((b,i)=>{
     const x=w/2+b.x*scale,y=h/2+b.y*scale;
-    b.trail.push([x,y]);
-    if (b.trail.length>100) b.trail.shift();
+    // İz, simülasyon koordinatlarında saklanır; pencere boyutu değişince kaymaz.
+    if (S.running) {
+      b.trail.push([b.x,b.y]);
+      if (b.trail.length>100) b.trail.shift();
+    }
 
     ctx.beginPath();
-    b.trail.forEach((p,j)=>j===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]));
+    b.trail.forEach((p,j)=>{
+      const px=w/2+p[0]*scale,py=h/2+p[1]*scale;
+      j===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    });
     ctx.strokeStyle=colors[i%colors.length];
     ctx.globalAlpha=.55; ctx.stroke(); ctx.globalAlpha=1;
 
@@ -836,8 +861,12 @@ function simulationTick(timestamp) {
   const speed=Number(document.getElementById("simSpeed")?.value || 2);
   const dt=elapsed*speed*2;
   const softening=100;
+  // Kuvvet büyüklüğü G·m/r^n. Yön vektörü (dx,dy) zaten r uzunluğunda olduğu
+  // için katsayı r^(n+1)'e bölünür. G, başlangıç halkasında (r = 65) kuvvetin
+  // önceki sürümle aynı büyüklükte kalacağı şekilde seçildi.
+  const G=.35*65;
 
-  // Basitleştirilmiş çiftler arası kuvvet modeli.
+  // Basitleştirilmiş çiftler arası kuvvet modeli: F ∝ 1/r^n.
   const accelerations=S.positions.map(()=>({x:0,y:0}));
 
   for (let i=0;i<S.positions.length;i++) {
@@ -846,7 +875,7 @@ function simulationTick(timestamp) {
       const dx=b.x-a.x,dy=b.y-a.y;
       const r2=dx*dx+dy*dy+softening;
       const r=Math.sqrt(r2);
-      const factor=.35/Math.pow(r,S.exponent);
+      const factor=G/Math.pow(r,S.exponent+1);
       const ax=factor*b.m*dx;
       const ay=factor*b.m*dy;
       const bx=-factor*a.m*dx;
@@ -862,9 +891,10 @@ function simulationTick(timestamp) {
     b.x+=b.vx*dt;
     b.y+=b.vy*dt;
 
+    // Esnek duvar: hız tersine döner ama büyüklüğü korunur, enerji kaybolmaz.
     const limit=125;
-    if (Math.abs(b.x)>limit) { b.x=Math.sign(b.x)*limit; b.vx*=-.8; }
-    if (Math.abs(b.y)>limit) { b.y=Math.sign(b.y)*limit; b.vy*=-.8; }
+    if (Math.abs(b.x)>limit) { b.x=Math.sign(b.x)*limit; b.vx*=-1; }
+    if (Math.abs(b.y)>limit) { b.y=Math.sign(b.y)*limit; b.vy*=-1; }
 
     // Sayısal kararsızlık büyürse simülasyonu güvenli biçimde durdur.
     if (![b.x,b.y,b.vx,b.vy].every(Number.isFinite) ||
@@ -1294,842 +1324,7 @@ function runAction(action) {
 
 function init() {
   const requested=location.hash.slice(1);
-  navigate(Object.prototype.hasOwnProperty.call(TITLES,requested)?requested:"home");
-}
-
-window.addEventListener("resize",()=>{
-  if(S.page==="threebody")setupCanvas();
-});
-
-init();
-</script>
-</body>
-</html>
-
-}
-
-function stack(items) {
-  return `<div class="stack">${items.map(item => `<div class="item">${item}</div>`).join("")}</div>`;
-}
-
-/* ---------- GEZİNME: TEK VE GÜVENLİ GİRİŞ NOKTASI ---------- */
-
-function navigate(page) {
-  if (!Object.prototype.hasOwnProperty.call(TITLES, page)) page = "home";
-  stopSimulation();
-  document.body.classList.toggle("home-mode", page === "home");
-  S.page = page;
-
-  document.querySelectorAll("[data-page]").forEach(el => {
-    if (el.tagName === "BUTTON" && el.closest(".sidebar")) {
-      el.classList.toggle("active", el.dataset.page === page);
-    }
-  });
-
-  breadcrumb.textContent = "UNIVERSE LAB / " + TITLES[page].toUpperCase();
-
-  try {
-    history.replaceState(null, "", "#" + page);
-  } catch (_) {}
-
-  render(page);
-  window.scrollTo({top:0, behavior:"auto"});
-}
-
-document.addEventListener("click", event => {
-  const nav = event.target.closest("[data-page]");
-  if (nav) {
-    navigate(nav.dataset.page);
-    return;
-  }
-
-  const action = event.target.closest("[data-action]");
-  if (action) runAction(action.dataset.action);
-});
-
-document.addEventListener("keydown", event => {
-  if ((event.key === "Enter" || event.key === " ") &&
-      event.target.matches("[role=button][data-page]")) {
-    event.preventDefault();
-    navigate(event.target.dataset.page);
-  }
-});
-
-window.addEventListener("hashchange", () => {
-  const page = location.hash.slice(1);
-  if (page && page !== S.page) navigate(page);
-});
-
-function render(page) {
-  if (page.startsWith("topic-")) {
-    const number = Number(page.slice(6));
-    renderTopic(number);
-    return;
-  }
-  const routes = {
-    home:renderHome, map:renderMap, creator:renderCreator,
-    threebody:renderThreeBody, signal:renderSignal,
-    entropy:renderEntropy, laws:renderLaws, observer:renderObserver,
-    memory:renderMemory, agent:renderAgent, research:renderResearch
-  };
-  (routes[page] || renderHome)();
-}
-
-/* ---------- ANA SAYFA ---------- */
-
-function renderHome() {
-  content.innerHTML = `
-    <section class="home-cinema">
-      <nav class="home-nav" aria-label="Ana gezinme">
-        <div class="home-brand">UNIVERSE <span>LAB</span></div>
-        <div class="home-version">INQUIRY · MODEL · UNCERTAINTY</div>
-      </nav>
-      <div class="home-hero">
-        <div class="home-copy">
-          <div class="home-kicker">INTERACTIVE RESEARCH ENVIRONMENT · 01—24</div>
-          <h1>Bir evreni<br><em>ne kadar</em><br>bilebiliriz?</h1>
-          <p>Gerçekliği doğrudan göremiyorsak, onu nasıl anlayabiliriz? Kendi evrenini kur; sınırlı gözlemlerle veriyi incele, fiziksel yasalar hakkında hipotezler geliştir ve bilginin sınırlarını keşfet.</p>
-          <div class="home-actions">
-            <button class="btn primary" type="button" data-action="start">Keşfe başla <span aria-hidden="true">↗</span></button>
-            <button class="btn" type="button" data-action="map">Araştırma haritası <span aria-hidden="true">→</span></button>
-          </div>
-          <div class="home-scrollhint">MODELLE · GÖZLEMLE · ÇIKARIM YAP</div>
-        </div>
-        <div class="home-orbit" aria-label="Yörüngelerle temsil edilen soyut evren görseli">
-          <div class="orbit-ring"></div><div class="orbit-ring r2"></div><div class="orbit-ring r3"></div>
-          <div class="orbit-core"></div><span class="orbit-dot"></span><span class="orbit-dot d2"></span>
-        </div>
-      </div>
-      <section class="home-labs">
-        <div class="home-section-head"><div><div class="home-kicker">YOUR RESEARCH ENVIRONMENT</div><h2>Evreni araştırmaya başla.</h2></div><p>Birbirine bağlı deney alanları</p></div>
-        <div class="home-lab-grid">
-          ${card("◉","01","Evreni kur","Başlangıç koşullarını ve fizik parametrelerini seç.","creator")}
-          ${card("◎","02","Üç cisim problemi","Başlangıç koşullarının yörüngeleri nasıl değiştirdiğini gözlemle.","threebody")}
-          ${card("∿","03","Sinyal laboratuvarı","Gürültü, gecikme ve uzaklığın bilgiyi nasıl sınırladığını incele.","signal")}
-          ${card("⌘","04","Enerji ve entropi","Düzen, enerji ve olası durumlar arasındaki ilişkiyi araştır.","entropy")}
-          ${card("◇","05","Fizik yasalarını keşfet","Rakip hipotezleri gözlemlerle karşılaştır.","laws")}
-          ${card("◌","06","Gözlemci laboratuvarı","Sınırlı ölçüm bütçesinin çıkarımlarını nasıl etkilediğini gör.","observer")}
-          ${card("▤","07","Evren ve bellek","Gözlem kayıtlarının birikimini ve bilgi kaybını düşün.","memory")}
-          ${card("⌁","08","Karar ajanı","Belirsizlik altında farklı kararların sonuçlarını karşılaştır.","agent")}
-          ${card("↗","09","Araştırma merkezi","Hipotezlerini ve araştırma notlarını bir araya getir.","research")}
-        </div>
-        <div class="home-method">
-          <article><b>01 / MODEL</b><h3>Bir sistem kur.</h3><p>Başlangıç koşullarını ve varsayımlarını açıkça belirle.</p></article>
-          <article><b>02 / OBSERVE</b><h3>Kanıt topla.</h3><p>Gözlemin sınırlı olduğunu ve verinin gürültü içerebileceğini unutma.</p></article>
-          <article><b>03 / INFER</b><h3>Çıkarımını sın sın.</h3><p>Hipotezlerini karşılaştır; gözlemin neyi kanıtlamadığını da kaydet.</p></article>
-        </div>
-        <div class="home-foot"><span>UNIVERSE LAB · RESEARCH PROJECT</span><span>BİR EVRENİ NE KADAR BİLEBİLİRİZ?</span></div>
-      </section>
-    </section>`;
-}
-
-/* ---------- 24 BAŞLIK ---------- */
-
-function renderMap() {
-  content.innerHTML = head("PROJECT MAP","Araştırma Haritası",
-    "24 araştırma konusunu ayrı ayrı aç. Her sayfada araştırma sorusu, hipotez, deney planı ve kişisel not alanı bulunur.") +
-    `<div class="topic-grid">${TOPICS.map((t,i) => `
-      <button class="topic" data-page="topic-${i+1}">
-        <span class="topic-number">${String(i+1).padStart(2,"0")}</span>
-        <span><strong>${esc(t.title)}</strong>
-        <small>${esc(t.desc)}</small>
-        <small>İlgili laboratuvar: ${esc(TITLES[t.page])}</small></span>
-      </button>`).join("")}</div>`;
-}
-
-function renderTopic(topicNumber) {
-  const index = Number(topicNumber) - 1;
-  if (!Number.isInteger(index) || index < 0 || index >= TOPICS.length) {
-    navigate("map");
-    return;
-  }
-  S.currentTopic = index + 1;
-  const t = TOPICS[index];
-  const saved = readStore("ul_topic_notes", {});
-  const note = saved[String(index + 1)] || {};
-  content.innerHTML = head(`ARAŞTIRMA KONUSU ${String(index+1).padStart(2,"0")} / 24`, esc(t.title), esc(t.desc)) +
-    `<div class="grid two">
-      <section class="card">
-        <div class="section-title">ARAŞTIRMA SORUSU</div><h3>${esc(t.question)}</h3>
-        <div class="section-title">TEST EDİLEBİLİR HİPOTEZ</div><p>${esc(t.hypothesis)}</p>
-        <div class="section-title">DENEY PLANI</div><p>${esc(t.experiment)}</p>
-        <div class="section-title">İZLENECEK DEĞİŞKENLER</div><p>${esc(t.variables)}</p>
-        <div class="notice"><strong>Bilimsel sınır:</strong> ${esc(t.caution)}</div>
-        <div class="actions">${btn("İlgili laboratuvarı aç →","open-topic-lab",true)}${btn("← Araştırma haritası","map")}</div>
-      </section>
-      <section class="card">
-        <h3>Araştırma defterin</h3>
-        <p class="small">Her deney için tahminini, gözlemini ve sonucunu ayrı yaz. Notların bu tarayıcıda saklanır.</p>
-        <label for="topicPrediction">1. Ön tahminim</label>
-        <textarea id="topicPrediction" rows="3" placeholder="Deneyi yapmadan önce ne olacağını düşünüyorsun?">${esc(note.prediction || "")}</textarea>
-        <label for="topicObservation">2. Gözlemim</label>
-        <textarea id="topicObservation" rows="4" placeholder="Ne gözlemledin? Veriyi veya sonucu yaz.">${esc(note.observation || "")}</textarea>
-        <label for="topicConclusion">3. Sonucum ve belirsizlikler</label>
-        <textarea id="topicConclusion" rows="4" placeholder="Hipotez desteklendi mi? Başka hangi açıklamalar mümkün?">${esc(note.conclusion || "")}</textarea>
-        <div class="actions">${btn("Araştırma notunu kaydet","save-topic-note",true)}${btn("Notlar merkezini aç","research")}</div>
-        <p class="small" id="topicSaveStatus" aria-live="polite"></p>
-      </section>
-    </div>
-    <div class="actions">${index>0?btn("← Önceki konu","previous-topic"):""}${index<TOPICS.length-1?btn("Sonraki konu →","next-topic",true):""}</div>`;
-}
-
-function saveTopicNote() {
-  const key = String(S.currentTopic);
-  const notes = readStore("ul_topic_notes", {});
-  notes[key] = {
-    prediction: document.getElementById("topicPrediction")?.value.trim() || "",
-    observation: document.getElementById("topicObservation")?.value.trim() || "",
-    conclusion: document.getElementById("topicConclusion")?.value.trim() || "",
-    updatedAt: new Date().toLocaleString("tr-TR")
-  };
-  if (!writeStore("ul_topic_notes", notes)) {
-    alert("Notlar bu tarayıcıda saklanamadı. Depolama ayarlarını kontrol et.");
-    return;
-  }
-  const status = document.getElementById("topicSaveStatus");
-  if (status) status.textContent = "Notların kaydedildi · " + notes[key].updatedAt;
-}
-
-/* ---------- UNIVERSE CREATOR ---------- */
-
-function renderCreator() {
-  content.innerHTML = head("LAB 01","Universe Creator",
-    "Bir evrenin başlangıç koşullarını tanımla. Uyguladığın ayarlar hareket simülasyonunda kullanılacaktır.") +
-    `<div class="grid two">
-      <section class="card">
-        <h3>Başlangıç koşulları</h3>
-        <label for="bodyCount">Cisim sayısı</label>
-        <select id="bodyCount">${[2,3,4,5,6].map(n=>`<option value="${n}" ${n===S.bodies?"selected":""}>${n}</option>`).join("")}</select>
-        <label for="mass">Kütle (göreli birim)</label>
-        <input id="mass" type="number" min=".1" max="10" step=".1" value="${S.mass}">
-        <label for="speed">Başlangıç hızı</label>
-        <input id="speed" type="number" min="0" max="100" value="${S.speed}">
-        <label for="exponent">Kuvvet üssü n</label>
-        <select id="exponent">${[1,1.5,2,2.5,3].map(n=>`<option value="${n}" ${n===S.exponent?"selected":""}>n = ${n}</option>`).join("")}</select>
-        <div class="actions">${btn("Parametreleri uygula","apply-universe",true)}${btn("Simülasyona geç","threebody")}</div>
-      </section>
-      <section class="card">
-        <h3>Evren yapılandırması</h3>
-        <div id="universeSummary">${universeSummary()}</div>
-        <div class="notice">Bu parametreler prototipte kullanılan basitleştirilmiş model içindir. Fiziksel birimlerin kalibrasyonu sonraki aşamada yapılmalıdır.</div>
-      </section>
-    </div>`;
-}
-
-function universeSummary() {
-  return stack([
-    `<strong>Cisim sayısı</strong><br>${S.bodies}`,
-    `<strong>Ortalama kütle</strong><br>${S.mass}`,
-    `<strong>Başlangıç hızı</strong><br>${S.speed}`,
-    `<strong>Kuvvet modeli</strong><br>F ∝ 1/r^${S.exponent}`
-  ]);
-}
-
-function applyUniverse() {
-  const count = Number(document.getElementById("bodyCount").value);
-  const mass = Number(document.getElementById("mass").value);
-  const speed = Number(document.getElementById("speed").value);
-  const exponent = Number(document.getElementById("exponent").value);
-
-  if (!Number.isFinite(mass) || mass < .1 || mass > 10 ||
-      !Number.isFinite(speed) || speed < 0 || speed > 100) {
-    alert("Kütle 0,1–10, hız 0–100 aralığında olmalıdır.");
-    return;
-  }
-
-  S.bodies = count;
-  S.mass = mass;
-  S.speed = speed;
-  S.exponent = exponent;
-  S.time = 0;
-  S.positions = makeBodies();
-  renderCreator();
-}
-
-function makeBodies() {
-  const bodies = [];
-  for (let i=0; i<S.bodies; i++) {
-    const angle = 2*Math.PI*i/S.bodies;
-    bodies.push({
-      x:Math.cos(angle)*65, y:Math.sin(angle)*65,
-      vx:-Math.sin(angle)*S.speed/30,
-      vy:Math.cos(angle)*S.speed/30,
-      m:S.mass, trail:[]
-    });
-  }
-  return bodies;
-}
-
-/* ---------- THREE BODY LAB ---------- */
-
-function renderThreeBody() {
-  if (!S.positions.length) S.positions = makeBodies();
-  content.innerHTML = head("LAB 02","Three Body Lab",
-    "Cisimlerin hareketini çalıştır, yörüngeleri gözlemle ve parametrelerin etkisini araştır.") +
-    `<div class="grid two">
-      <section class="card">
-        <h3>Hareket alanı</h3>
-        <canvas id="universeCanvas" aria-label="Cisimlerin hareket simülasyonu"></canvas>
-        <div class="actions">${btn("Başlat","start-sim",true)}${btn("Durdur","stop-sim")}${btn("Sıfırla","reset-sim")}</div>
-      </section>
-      <section class="card">
-        <h3>Simülasyon kontrolü</h3>
-        <div class="metric" id="simTime">0.0</div><div class="small">Simülasyon zamanı (göreli birim)</div>
-        <label for="simExponent">Kuvvet üssü n: <span id="expValue">${S.exponent}</span></label>
-        <input id="simExponent" type="range" min="1" max="3" step=".5" value="${S.exponent}">
-        <label for="simSpeed">Görselleştirme hızı</label>
-        <input id="simSpeed" type="range" min="1" max="5" value="2">
-        <div class="notice">Bu bir başlangıç modeli, doğrulanmış astronomik simülatör değildir. Yakın karşılaşmalar ve uzun zaman aralıkları sayısal hataları büyütebilir.</div>
-      </section>
-    </div>
-    <div class="section-title">ANLIK DURUM</div>
-    <div class="card"><div id="bodyReadout">${bodyReadout()}</div></div>`;
-  setupCanvas();
-  const exponentInput = document.getElementById("simExponent");
-  exponentInput.addEventListener("input", () => {
-    S.exponent = Number(exponentInput.value);
-    document.getElementById("expValue").textContent = String(S.exponent);
-  });
-}
-
-function bodyReadout() {
-  if (!S.positions.length) return "<p>Henüz cisim yok.</p>";
-  return `<div class="grid two">${S.positions.map((b,i)=>`
-    <div class="item"><strong>Cisim ${i+1}</strong><br>
-    x: ${b.x.toFixed(2)} · y: ${b.y.toFixed(2)}<br>
-    hız: ${Math.hypot(b.vx,b.vy).toFixed(2)}</div>`).join("")}</div>`;
-}
-
-function setupCanvas() {
-  const canvas = document.getElementById("universeCanvas");
-  if (!canvas) return;
-  const rect = canvas.getBoundingClientRect();
-  const ratio = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = Math.max(1, Math.floor(rect.width*ratio));
-  canvas.height = Math.max(1, Math.floor(rect.height*ratio));
-  drawUniverse();
-}
-
-function drawUniverse() {
-  const canvas = document.getElementById("universeCanvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  const w=canvas.width,h=canvas.height;
-  ctx.clearRect(0,0,w,h);
-  ctx.fillStyle="#050912"; ctx.fillRect(0,0,w,h);
-
-  for (let i=0;i<90;i++) {
-    const x=((i*97)%997)/997*w;
-    const y=((i*61)%991)/991*h;
-    ctx.fillStyle="rgba(190,210,255,.45)";
-    ctx.fillRect(x,y,2,2);
-  }
-
-  const scale=Math.min(w,h)/290;
-  const colors=["#7be5e5","#bdaaff","#91baff","#f5bd85","#f28fb8","#a5edbd"];
-
-  S.positions.forEach((b,i)=>{
-    const x=w/2+b.x*scale,y=h/2+b.y*scale;
-    b.trail.push([x,y]);
-    if (b.trail.length>100) b.trail.shift();
-
-    ctx.beginPath();
-    b.trail.forEach((p,j)=>j===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]));
-    ctx.strokeStyle=colors[i%colors.length];
-    ctx.globalAlpha=.55; ctx.stroke(); ctx.globalAlpha=1;
-
-    ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2);
-    ctx.fillStyle=colors[i%colors.length]; ctx.fill();
-  });
-
-  const time=document.getElementById("simTime");
-  if (time) time.textContent=S.time.toFixed(1);
-  const readout=document.getElementById("bodyReadout");
-  if (readout) readout.innerHTML=bodyReadout();
-}
-
-function stopSimulation() {
-  S.running=false;
-  if (S.raf!==null) cancelAnimationFrame(S.raf);
-  S.raf=null;
-  S.lastFrame=0;
-}
-
-function startSimulation() {
-  if (S.running) return;
-  if (!S.positions.length) S.positions=makeBodies();
-  S.running=true; S.lastFrame=0;
-  S.raf=requestAnimationFrame(simulationTick);
-}
-
-function simulationTick(timestamp) {
-  if (!S.running || S.page!=="threebody") return;
-  if (!S.lastFrame) S.lastFrame=timestamp;
-
-  const elapsed=Math.min((timestamp-S.lastFrame)/1000,.025);
-  S.lastFrame=timestamp;
-  const speed=Number(document.getElementById("simSpeed")?.value || 2);
-  const dt=elapsed*speed*2;
-  const softening=100;
-
-  // Basitleştirilmiş çiftler arası kuvvet modeli.
-  const accelerations=S.positions.map(()=>({x:0,y:0}));
-
-  for (let i=0;i<S.positions.length;i++) {
-    for (let j=i+1;j<S.positions.length;j++) {
-      const a=S.positions[i],b=S.positions[j];
-      const dx=b.x-a.x,dy=b.y-a.y;
-      const r2=dx*dx+dy*dy+softening;
-      const r=Math.sqrt(r2);
-      const factor=.35/Math.pow(r,S.exponent);
-      const ax=factor*b.m*dx;
-      const ay=factor*b.m*dy;
-      const bx=-factor*a.m*dx;
-      const by=-factor*a.m*dy;
-      accelerations[i].x+=ax; accelerations[i].y+=ay;
-      accelerations[j].x+=bx; accelerations[j].y+=by;
-    }
-  }
-
-  S.positions.forEach((b,i)=>{
-    b.vx+=accelerations[i].x*dt;
-    b.vy+=accelerations[i].y*dt;
-    b.x+=b.vx*dt;
-    b.y+=b.vy*dt;
-
-    const limit=125;
-    if (Math.abs(b.x)>limit) { b.x=Math.sign(b.x)*limit; b.vx*=-.8; }
-    if (Math.abs(b.y)>limit) { b.y=Math.sign(b.y)*limit; b.vy*=-.8; }
-
-    // Sayısal kararsızlık büyürse simülasyonu güvenli biçimde durdur.
-    if (![b.x,b.y,b.vx,b.vy].every(Number.isFinite) ||
-        Math.abs(b.x)>1e5 || Math.abs(b.y)>1e5) {
-      stopSimulation();
-    }
-  });
-
-  S.time+=dt;
-  drawUniverse();
-  if (S.running) S.raf=requestAnimationFrame(simulationTick);
-}
-
-/* ---------- SIGNAL LAB ---------- */
-
-function renderSignal() {
-  content.innerHTML = head("LAB 03","Signal Lab",
-    "Sentetik bir sinyalde gürültü, gecikme ve seyrek ölçümün etkisini incele.") +
-    `<div class="grid two">
-      <section class="card">
-        <h3>Sinyal ayarları</h3>
-        <label for="noise">Gürültü: <span id="noiseValue">${S.noise}%</span></label>
-        <input id="noise" type="range" min="0" max="100" value="${S.noise}">
-        <label for="delay">Gecikme (örnek sayısı)</label>
-        <input id="delay" type="number" min="0" max="30" value="2">
-        <label for="frequency">Ölçüm sıklığı</label>
-        <select id="frequency"><option value="1">Her örnek</option><option value="2">İki örnekte bir</option><option value="5">Beş örnekte bir</option></select>
-        <div class="actions">${btn("Sinyal üret","generate-signal",true)}</div>
-      </section>
-      <section class="card">
-        <h3>Sinyal karşılaştırması</h3>
-        <div class="metric" id="signalQuality">—</div>
-        <div class="small">Gürültü ve gecikmeyi birlikte içeren gösterge</div>
-        <canvas id="signalCanvas" class="plot"></canvas>
-        <div class="small">Turkuaz: kaynak sinyal · Mor: gözlem örnekleri</div>
-      </section>
-    </div>
-    <div class="notice">Bu ekran sentetik veri kullanır; gerçek teleskop verisi veya fiziksel ışınım modeli değildir.</div>`;
-
-  document.getElementById("noise").addEventListener("input",e=>{
-    S.noise=Number(e.target.value);
-    document.getElementById("noiseValue").textContent=S.noise+"%";
-  });
-}
-
-function generateSignal() {
-  const noise=S.noise/100;
-  const delay=Math.max(0,Math.min(30,Number(document.getElementById("delay").value)||0));
-  const frequency=Number(document.getElementById("frequency").value);
-  const n=160,original=[],observed=[];
-
-  for(let i=0;i<n;i++) original.push(Math.sin(i*.09)+.35*Math.sin(i*.027));
-
-  for(let i=0;i<n;i++) {
-    if (i%frequency!==0) { observed.push(null); continue; }
-    const source=original[Math.max(0,i-delay)];
-    observed.push(source+(Math.random()*2-1)*noise);
-  }
-
-  let squaredError=0,count=0;
-  observed.forEach((v,i)=>{
-    if(v!==null){squaredError+=(v-original[i])**2;count++;}
-  });
-  const rmse=Math.sqrt(squaredError/Math.max(1,count));
-  const quality=Math.max(0,100*(1-rmse/1.5));
-
-  document.getElementById("signalQuality").textContent=quality.toFixed(1)+"%";
-  drawSignal(original,observed);
-}
-
-function drawSignal(original,observed) {
-  const canvas=document.getElementById("signalCanvas");
-  if(!canvas)return;
-  const ctx=canvas.getContext("2d");
-  const ratio=Math.min(window.devicePixelRatio||1,2);
-  const rect=canvas.getBoundingClientRect();
-  canvas.width=Math.max(1,Math.floor(rect.width*ratio));
-  canvas.height=Math.max(1,Math.floor(rect.height*ratio));
-  const w=canvas.width,h=canvas.height;
-  ctx.clearRect(0,0,w,h);
-
-  function plot(data,color,points=false) {
-    ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2;
-    ctx.beginPath();let started=false;
-    data.forEach((v,i)=>{
-      if(v===null || !Number.isFinite(v)){started=false;return;}
-      const x=i/(data.length-1)*w,y=h/2-v*h*.28;
-      if(points) {
-        ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();
-      } else {
-        if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);
-      }
-    });
-    if(!points)ctx.stroke();
-  }
-  plot(original,"#7be5e5");
-  plot(observed,"#bdaaff",true);
-}
-
-/* ---------- ENERGY AND ENTROPY ---------- */
-
-function renderEntropy() {
-  content.innerHTML = head("LAB 04","Energy & Entropy",
-    "Enerji dağılımı, düzensizlik ve zamanın oku hakkında ölçülebilir bir deney tasarlamaya başla.") +
-    `<div class="grid two">
-      <section class="card">
-        <h3>Dağılım parametreleri</h3>
-        <label for="disorder">Düzensizlik göstergesi</label>
-        <input id="disorder" type="range" min="0" max="100" value="35">
-        <label for="energy">Toplam enerji (göreli birim)</label>
-        <input id="energy" type="range" min="1" max="100" value="60">
-        <div class="actions">${btn("Gösterimi oluştur","calculate-entropy",true)}</div>
-      </section>
-      <section class="card">
-        <h3>Gösterim</h3>
-        <div class="metric" id="entropyValue">—</div>
-        <div class="small">Normalize edilmiş düzensizlik parametresi</div>
-        <canvas id="energyCanvas" class="plot"></canvas>
-      </section>
-    </div>
-    <div class="notice">Bu grafik gerçek termodinamik entropi hesabı değildir. Fiziksel entropi için sistemin durumları ve uygun matematiksel model tanımlanmalıdır.</div>`;
-}
-
-function calculateEntropy() {
-  const disorder=Number(document.getElementById("disorder").value)/100;
-  const energy=Number(document.getElementById("energy").value);
-  document.getElementById("entropyValue").textContent=disorder.toFixed(2);
-  const canvas=document.getElementById("energyCanvas");
-  const ctx=canvas.getContext("2d");
-  const ratio=Math.min(window.devicePixelRatio||1,2);
-  const rect=canvas.getBoundingClientRect();
-  canvas.width=Math.max(1,Math.floor(rect.width*ratio));
-  canvas.height=Math.max(1,Math.floor(rect.height*ratio));
-  const w=canvas.width,h=canvas.height;
-  ctx.clearRect(0,0,w,h);
-
-  const count=30,values=[];
-  for(let i=0;i<count;i++)values.push(Math.random());
-  if(disorder<.01)values.fill(1);
-  const sum=values.reduce((a,b)=>a+b,0)||1;
-  values.forEach((v,i)=>{
-    const normalized=disorder>.5?v:1-v*.5;
-    const bar=Math.max(2,normalized*h*(energy/100));
-    ctx.fillStyle=disorder>.5?"#bdaaff":"#7be5e5";
-    ctx.fillRect(i/count*w+2,h-bar,w/count-4,bar);
-  });
-}
-
-/* ---------- LAW DISCOVERY ---------- */
-
-function renderLaws() {
-  S.hypotheses=readStore("ul_hypotheses",[]);
-  content.innerHTML = head("LAB 05","Law Discovery",
-    "Farklı kuvvet yasalarını rakip hipotezler olarak kaydet. Gerçek yasa keşfi, veriye uyum ve bağımsız test gerektirir.") +
-    `<div class="grid two">
-      <section class="card">
-        <h3>Hipotez kaydı</h3>
-        <label for="lawChoice">Kuvvet hipotezi</label>
-        <select id="lawChoice">${[1,1.5,2,2.5,3].map(n=>`<option value="${n}" ${n===S.exponent?"selected":""}>F ∝ 1/r^${n}</option>`).join("")}</select>
-        <label for="confidence">Gözlemci güveni: <span id="confidenceValue">50%</span></label>
-        <input id="confidence" type="range" min="0" max="100" value="50">
-        <div class="actions">${btn("Hipotezi kaydet","save-hypothesis",true)}</div>
-      </section>
-      <section class="card">
-        <h3>Hipotez günlüğü</h3>
-        <div id="hypothesisList">${hypothesisHTML()}</div>
-      </section>
-    </div>
-    <div class="notice">Bu sürüm hipotezleri kaydeder, ancak henüz gözlem verilerine istatistiksel model uydurmaz. Güven yüzdesi kullanıcının beyanıdır; ölçülmüş doğruluk değildir.</div>`;
-
-  document.getElementById("confidence").addEventListener("input",e=>{
-    document.getElementById("confidenceValue").textContent=e.target.value+"%";
-  });
-}
-
-function hypothesisHTML() {
-  if(!S.hypotheses.length)return "<p>Henüz hipotez kaydedilmedi.</p>";
-  return `<div class="stack">${S.hypotheses.slice().reverse().map(x=>
-    `<div class="item"><strong>F ∝ 1/r^${esc(x.n)}</strong><br>
-    Kullanıcı güveni: ${esc(x.confidence)}%<br><span class="small">${esc(x.time)}</span></div>`
-  ).join("")}</div>`;
-}
-
-function saveHypothesis() {
-  const n=Number(document.getElementById("lawChoice").value);
-  const confidence=Number(document.getElementById("confidence").value);
-  S.hypotheses.push({n,confidence,time:new Date().toLocaleString("tr-TR")});
-  writeStore("ul_hypotheses",S.hypotheses);
-  renderLaws();
-}
-
-/* ---------- OBSERVER LAB ---------- */
-
-function renderObserver() {
-  content.innerHTML = head("LAB 06","Observer Lab",
-    "Ölçüm bütçesini sınırla. Az sayıda ölçümle hangi sonuçlara ulaşabileceğini ve ne zaman belirsizliği kabul etmen gerektiğini incele.") +
-    `<div class="grid two">
-      <section class="card">
-        <h3>Gözlem bütçesi</h3>
-        <label for="budget">Ölçüm sayısı: <span id="budgetValue">10</span></label>
-        <input id="budget" type="range" min="1" max="100" value="10">
-        <label for="cost">Ölçüm başına maliyet</label>
-        <input id="cost" type="number" min="1" max="100" value="1">
-        <div class="actions">${btn("Deneyi çalıştır","run-observer",true)}</div>
-      </section>
-      <section class="card">
-        <h3>Gözlem raporu</h3>
-        <div id="observerResult"><p>Deney henüz çalıştırılmadı.</p></div>
-      </section>
-    </div>
-    <div class="grid two">
-      <section class="card"><h3>Algoritmik gözlemci</h3><p>Bir algoritma ölçümleri seçebilir, sonuçları özetleyebilir ve tahminlerini yeni verilerle sınayabilir.</p></section>
-      <section class="card"><h3>“Bilmiyorum” seçeneği</h3><p>Kanıt yetersiz olduğunda kesin bir sonuç vermemek, güvenilir araştırmanın önemli bir parçasıdır.</p></section>
-    </div>`;
-
-  document.getElementById("budget").addEventListener("input",e=>{
-    document.getElementById("budgetValue").textContent=e.target.value;
-  });
-}
-
-function runObserver() {
-  const budget=Number(document.getElementById("budget").value);
-  const cost=Math.max(1,Number(document.getElementById("cost").value)||1);
-  const used=Math.floor(budget/cost);
-  const result=document.getElementById("observerResult");
-  result.innerHTML=`<div class="metric">${used}</div>
-    <p>Kullanılabilir ölçüm: ${budget}<br>Ölçüm maliyeti: ${cost}</p>
-    <div class="notice">${used<10
-      ?"Ölçüm sayısı sınırlı. Güçlü sonuç çıkarmadan önce daha fazla veri gerekebilir."
-      :"Ölçüm sayısı daha yüksek. Yine de ölçümlerin kalitesi ve model varsayımları önemlidir."}</div>`;
-}
-
-/* ---------- UNIVERSE & MEMORY ---------- */
-
-function renderMemory() {
-  content.innerHTML = head("LAB 07","Universe & Memory",
-    "Döngüsel süreçler, hafıza ve geçmişe ilişkin kanıt sorularını bir düşünce deneyi üzerinden incele.") +
-    `<div class="grid two">
-      <section class="card">
-        <h3>Döngü düşünce deneyi</h3>
-        <label for="cycles">Döngü sayısı</label>
-        <input id="cycles" type="number" min="1" max="1000" value="10">
-        <label for="memoryMode">Saklanan bilgi</label>
-        <select id="memoryMode"><option>Hiçbiri</option><option>Özet</option><option>Tüm ölçümler</option></select>
-        <div class="actions">${btn("Düşünce deneyini çalıştır","run-memory",true)}</div>
-      </section>
-      <section class="card"><h3>Sonuç</h3><div id="memoryResult"><p>Deney henüz çalıştırılmadı.</p></div></section>
-    </div>
-    <div class="card" style="margin-top:14px"><h3>Hafıza, geçmişin kanıtı mıdır?</h3>
-    <p>Bir gözlemcinin geçmişe dair hafızası, tek başına geçmişin fiziksel olarak yaşandığını kanıtlamaz. Bu bölüm kavramsal soruları ele alır; döngüsel evrenin varlığına ilişkin kanıt üretmez.</p></div>`;
-}
-
-function runMemory() {
-  const cycles=Number(document.getElementById("cycles").value);
-  if(!Number.isInteger(cycles)||cycles<1||cycles>1000) {
-    alert("Döngü sayısı 1 ile 1000 arasında bir tam sayı olmalıdır.");
-    return;
-  }
-  const mode=document.getElementById("memoryMode").value;
-  document.getElementById("memoryResult").innerHTML=
-    `<div class="metric">${cycles}</div><p>Döngü sayısı: ${cycles}<br>Hafıza biçimi: ${esc(mode)}</p>
-    <div class="notice">Bu ayarlar bir düşünce deneyini tanımlar. Tek başına fiziksel bir döngünün varlığına dair kanıt oluşturmaz.</div>`;
-}
-
-/* ---------- DECISION AGENT ---------- */
-
-function renderAgent() {
-  content.innerHTML = head("LAB 08","Decision Agent",
-    "Eksik bilgi altında karar veren bir ajanın davranışını tanımla. Bu basitleştirilmiş karar modeli araştırma amacıyla kullanılır.") +
-    `<div class="grid two">
-      <section class="card">
-        <h3>Karar ayarları</h3>
-        <label for="scenario">Senaryo</label>
-        <select id="scenario">
-          <option value="measure">Yeni bir ölçüm yap</option>
-          <option value="model">Mevcut modeli kullan</option>
-          <option value="unknown">Sonucu belirsiz bırak</option>
-        </select>
-        <label for="importance">Kararın önemi: <span id="importanceValue">50%</span></label>
-        <input id="importance" type="range" min="1" max="100" value="50">
-        <label for="agentConfidence">Model güveni: <span id="agentConfidenceValue">50%</span></label>
-        <input id="agentConfidence" type="range" min="0" max="100" value="50">
-        <div class="actions">${btn("Kararı değerlendir","decide",true)}</div>
-      </section>
-      <section class="card"><h3>Ajan raporu</h3><div id="agentResult"><p>Bir senaryo seç.</p></div></section>
-    </div>
-    <div class="section-title">ÜÇ KATMANLI MODEL</div>
-    <div class="grid">
-      <section class="card"><div class="num">LAYER 01</div><h3>Fiziksel evren</h3><p>Sistemin fiziksel durumu ve dinamikleri.</p></section>
-      <section class="card"><div class="num">LAYER 02</div><h3>Gözlemci</h3><p>Sinyal alır, ölçüm yapar ve model kurar.</p></section>
-      <section class="card"><div class="num">LAYER 03</div><h3>Karar ajanı</h3><p>Bilgi ve belirsizlik altında eylem seçer.</p></section>
-    </div>`;
-
-  for (const [id,target] of [["importance","importanceValue"],["agentConfidence","agentConfidenceValue"]]) {
-    document.getElementById(id).addEventListener("input",e=>{
-      document.getElementById(target).textContent=e.target.value+"%";
-    });
-  }
-}
-
-function decide() {
-  const scenario=document.getElementById("scenario").value;
-  const importance=Number(document.getElementById("importance").value);
-  const confidence=Number(document.getElementById("agentConfidence").value);
-  let title,desc;
-
-  if(scenario==="measure") {
-    title="Yeni ölçüm yap";
-    desc="Ek veri belirsizliği azaltabilir; ancak zaman ve ölçüm maliyeti de hesaba katılmalıdır.";
-  } else if(scenario==="unknown") {
-    title="Sonucu belirsiz işaretle";
-    desc="Bu senaryoda kesin sonuca zorlamak yerine belirsizliği açıkça ifade et.";
-  } else if(confidence>=70) {
-    title="Modeli geçici olarak kullan";
-    desc="Güven yüksek olsa da modelin tahminleri yeni ve bağımsız verilerle sınanmalıdır.";
-  } else {
-    title="Ek bilgi topla";
-    desc="Mevcut güven düzeyi, tek başına güçlü bir sonuca varmak için yeterli değildir.";
-  }
-
-  document.getElementById("agentResult").innerHTML=
-    `<h2>${title}</h2><p>${desc}</p>
-    <div class="item">Karar önemi: ${importance}%<br>Model güveni: ${confidence}%</div>`;
-}
-
-/* ---------- RESEARCH CENTER ---------- */
-
-function renderResearch() {
-  S.notes=readStore("ul_notes",[]);
-  const variables=["Tahmin hatası","Model doğruluğu","Bilgi miktarı","Gürültü seviyesi",
-    "Sinyal gecikmesi","Ölçüm sıklığı","Tahmin ufku","Entropi göstergesi",
-    "Enerji dağılımı","Yasa tahmini","Belirsizlik","Güven düzeyi"];
-
-  content.innerHTML = head("LAB 09","Research Center",
-    "Deney günlüğünü tut, araştırma sorularını takip et ve kaydedilmiş notlarını CSV olarak dışa aktar.") +
-    `<div class="grid two">
-      <section class="card">
-        <h3>Araştırma günlüğü</h3>
-        <label for="noteTitle">Deney başlığı</label>
-        <input id="noteTitle" type="text" maxlength="160" placeholder="Örn. Gürültünün gözleme etkisi">
-        <label for="noteText">Gözlem ve yorum</label>
-        <textarea id="noteText" maxlength="10000" placeholder="Ne değiştirdin? Ne gözlemledin? Hangi sonuç belirsiz kaldı?"></textarea>
-        <div class="actions">${btn("Notu kaydet","save-note",true)}${btn("CSV dışa aktar","export-csv")}</div>
-      </section>
-      <section class="card">
-        <h3>Kaydedilmiş notlar</h3>
-        <div id="notesList">${notesHTML()}</div>
-      </section>
-    </div>
-    <div class="section-title">ARAŞTIRMA DEĞİŞKENLERİ</div>
-    <div class="grid">${variables.map((v,i)=>`
-      <section class="card"><div class="num">VAR ${String(i+1).padStart(2,"0")}</div>
-      <h3>${v}</h3><p>Deneyde tanımlanıp uygun yöntemle ölçülebilir bir değişkene dönüştürülmelidir.</p></section>`).join("")}</div>
-    <div class="section-title">ANA ARAŞTIRMA SORUSU</div>
-    <div class="card"><h3>Sınırlı bilgiyle fiziksel gerçekliğin yasalarını ne ölçüde çıkarabiliriz?</h3>
-    <p>Sonuçlar, ölçüm koşulları, model varsayımları ve alternatif açıklamalarla birlikte değerlendirilmelidir.</p></div>`;
-}
-
-function notesHTML() {
-  if(!S.notes.length)return "<p>Henüz not kaydedilmedi.</p>";
-  return `<div class="stack">${S.notes.slice().reverse().map(note=>
-    `<div class="item"><strong>${esc(note.title)}</strong><br>${esc(note.body)}
-    <br><span class="small">${esc(note.time)}</span></div>`).join("")}</div>`;
-}
-
-function saveNote() {
-  const title=document.getElementById("noteTitle").value.trim();
-  const body=document.getElementById("noteText").value.trim();
-  if(!title||!body) { alert("Lütfen başlığı ve gözlem notunu doldur."); return; }
-
-  S.notes=readStore("ul_notes",[]);
-  S.notes.push({title,body,time:new Date().toLocaleString("tr-TR")});
-  if(!writeStore("ul_notes",S.notes)) {
-    alert("Tarayıcı notları saklayamadı. Tarayıcı depolama ayarlarını kontrol et.");
-    return;
-  }
-  renderResearch();
-}
-
-function exportCSV() {
-  const notes=readStore("ul_notes",[]);
-  if(!notes.length) { alert("Dışa aktarılacak not bulunamadı."); return; }
-
-  const quote=value=>'"'+String(value).replace(/"/g,'""')+'"';
-  const rows=[["Başlık","Gözlem","Tarih"],...notes.map(n=>[n.title,n.body,n.time])];
-  const csv=rows.map(row=>row.map(quote).join(",")).join("\r\n");
-  const url=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));
-  const link=document.createElement("a");
-  link.href=url;link.download="universe-lab-notlari.csv";
-  document.body.appendChild(link);link.click();link.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-
-/* ---------- BUTON EYLEMLERİ ---------- */
-
-function runAction(action) {
-  try {
-    switch(action) {
-      case "start": navigate("creator"); break;
-      case "map": navigate("map"); break;
-      case "threebody": navigate("threebody"); break;
-      case "open-topic-lab": navigate(TOPICS[S.currentTopic - 1].page); break;
-      case "save-topic-note": saveTopicNote(); break;
-      case "next-topic": navigate("topic-" + Math.min(TOPICS.length, S.currentTopic + 1)); break;
-      case "previous-topic": navigate("topic-" + Math.max(1, S.currentTopic - 1)); break;
-      case "apply-universe": applyUniverse(); break;
-      case "start-sim": startSimulation(); break;
-      case "stop-sim": stopSimulation(); break;
-      case "reset-sim":
-        stopSimulation();S.time=0;S.positions=makeBodies();renderThreeBody();break;
-      case "generate-signal": generateSignal(); break;
-      case "calculate-entropy": calculateEntropy(); break;
-      case "save-hypothesis": saveHypothesis(); break;
-      case "run-observer": runObserver(); break;
-      case "run-memory": runMemory(); break;
-      case "decide": decide(); break;
-      case "save-note": saveNote(); break;
-      case "export-csv": exportCSV(); break;
-    }
-  } catch (error) {
-    console.error("UNIVERSE LAB action error:", action, error);
-    alert("Bu işlem tamamlanamadı. Tarayıcı konsolundaki hata ayrıntılarını kontrol edebilirsin.");
-  }
-}
-
-/* ---------- BAŞLAT ---------- */
-
-function init() {
-  const requested=location.hash.slice(1);
-  navigate(Object.prototype.hasOwnProperty.call(TITLES,requested)?requested:"home");
+  navigate(Object.prototype.hasOwnProperty.call(TITLES,requested)?requested:"home", false);
 }
 
 window.addEventListener("resize",()=>{
